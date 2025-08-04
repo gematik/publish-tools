@@ -49,8 +49,8 @@ def update_ig_list(info: Guide, ig_list_file: Path):
 
     if ig_list_file.exists():
         # Read the existing data
-        # ig_list = json.loads(ig_list_file.read_text(encoding="utf-8"))
-        ig_list = IgList.model_validate_json(ig_list_file.read_text(encoding="utf-8"))
+        content = ig_list_file.read_text(encoding="utf-8")
+        ig_list = IgList.model_validate_json(content)
 
     else:
         # Ensure the parent directory exists
@@ -79,4 +79,5 @@ def update_ig_list(info: Guide, ig_list_file: Path):
     if not guide_found:
         ig_list.guides.append(info)
 
-    ig_list_file.write_text(ig_list.model_dump_json(indent=4), encoding="utf-8")
+    content = ig_list.model_dump_json(indent=4)
+    ig_list_file.write_text(content, encoding="utf-8")
