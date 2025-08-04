@@ -18,3 +18,7 @@ class Guide(BaseModel):
     canonical: str
     ci_build: str = Field(serialization_alias="ci-build")
     editions: list[Edition]
+
+
+class IgList(BaseModel):
+    guides: list[Guide] = []

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from .models import Edition, Guide
+from .models import Edition, Guide, IgList
 
 
 def get_package_information(project_dir: Path) -> Guide:
@@ -42,3 +42,41 @@ def get_package_information(project_dir: Path) -> Guide:
     )
 
     return info
+
+
+def update_ig_list(info: Guide, ig_list_file: Path):
+    ig_list = None
+
+    if ig_list_file.exists():
+        # Read the existing data
+        # ig_list = json.loads(ig_list_file.read_text(encoding="utf-8"))
+        ig_list = IgList.model_validate_json(ig_list_file.read_text(encoding="utf-8"))
+
+    else:
+        # Ensure the parent directory exists
+        ig_list_file.parent.mkdir(parents=True, exist_ok=True)
+        ig_list = IgList()
+
+    # Check guides if entry already exists
+    guide_found = False
+    for guide in ig_list.guides:
+        if guide.npm_name == info.npm_name:
+
+            edition_found = False
+            for i, edition in enumerate(guide.editions):
+                if edition.package == info.editions[0].package:
+                    guide.editions[i] = info.editions[0]
+                    edition_found = True
+                    break
+
+            if not edition_found:
+                guide.editions.append(info.editions[0])
+
+            guide_found = True
+            break
+
+    # If guide does not exists, add as new one
+    if not guide_found:
+        ig_list.guides.append(info)
+
+    ig_list_file.write_text(ig_list.model_dump_json(indent=4), encoding="utf-8")
