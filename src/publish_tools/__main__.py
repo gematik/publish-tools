@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 from .models import Edition, Guide, IgInfo, IgList
@@ -87,7 +88,40 @@ def update_ig_list(info: IgInfo, ig_list_file: Path):
     ig_list_file.write_text(content, encoding="utf-8")
 
 
-def publish(project_dir: Path, info: IgInfo):
+def update_ig_history_file(ig_dir: Path, info: IgInfo):
+    ig_dir.mkdir(parents=True, exist_ok=True)
+
+    ig_history_file = ig_dir / "ig_history.json"
+    if ig_history_file.exists():
+        content = ig_history_file.read_text(encoding="utf-8")
+        guide = Guide.model_validate_json(content)
+
+        for i, edition in enumerate(guide.editions):
+            edition_found = False
+            if edition.package == info.edition.package:
+                guide.editions[i] = info.edition
+                edition_found = True
+                break
+
+            if not edition_found:
+                guide.editions.append(info.edition)
+
+    else:
+        guide = Guide.model_validate(
+            {
+                "editions": [info.edition],
+                **info.model_dump(),
+            }
+        )
+
+    content = guide.model_dump_json(indent=4)
+    ig_history_file.write_text(content, encoding="utf-8")
+
+
+def publish(project_dir: Path, ig_list_file: Path):
+    info = get_package_information(project_path)
+    update_ig_list(info, ig_list_file)
+
     ######
     # Create directory for IG contents
     ######
@@ -112,8 +146,16 @@ def publish(project_dir: Path, info: IgInfo):
     archive_dir = pub_dir / "ig-build-zips"
     archive_dir.mkdir(parents=True, exist_ok=True)
 
-    archive = shutil.make_archive(
-        info.edition.package, "zip", pub_ig_dir, pub_ig_version_dir
+    archive = Path(
+        shutil.make_archive(
+            info.edition.package,
+            "zip",
+            pub_ig_dir,
+            pub_ig_version_dir,
+        )
     )
 
-    shutil.move(archive, archive_dir)
+    shutil.move(archive, archive_dir / archive.name)
+
+    # Update history file
+    update_ig_history_file(pub_ig_dir, info)
