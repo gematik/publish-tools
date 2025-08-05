@@ -85,7 +85,7 @@ def update_ig_list(info: IgInfo, ig_list_file: Path):
         )
         ig_list.guides.append(guide)
 
-    content = ig_list.model_dump_json(indent=4)
+    content = ig_list.model_dump_json(indent=4, by_alias=True)
     ig_list_file.write_text(content, encoding="utf-8")
 
 
@@ -115,7 +115,7 @@ def update_ig_history_file(ig_dir: Path, info: IgInfo) -> Path:
             }
         )
 
-    content = guide.model_dump_json(indent=4)
+    content = guide.model_dump_json(indent=4, by_alias=True)
     ig_history_file.write_text(content, encoding="utf-8")
 
     return ig_history_file
