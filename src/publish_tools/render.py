@@ -24,5 +24,5 @@ def render_history(file: Path):
 
     basic_body = env.get_template("basic_body.jinja")
 
-    output = Path("index.html")
+    output = file.with_name("index.html")
     output.write_text(basic_body.render(**data), encoding="utf-8")
