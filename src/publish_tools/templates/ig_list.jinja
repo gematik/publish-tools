@@ -2,49 +2,7 @@
 
 <head>
     <title>{{ title }}</title>
-    <style>
-        body {
-            font-family: verdana;
-            font-size: 12px;
-            width: 100%;
-            word-wrap: break-word;
-        }
-
-        table {
-            max-width: 100%;
-            background-color: transparent;
-            border-spacing: 0;
-        }
-
-        tr {
-            text-align: left;
-        }
-
-        table.history-grid {
-            font-size: 12px;
-            margin-bottom: 10px;
-            border: 1px solid silver;
-        }
-
-        table.history-grid th {
-            border: 1px solid silver;
-            padding: 3px;
-        }
-
-        table.history-grid td {
-            border: 1px solid silver;
-            padding: 3px;
-        }
-
-        table.history-grid tr.sequence {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-
-        thead {
-            background-color: #efefef;
-        }
-    </style>
+    {% include 'style.html' %}
 </head>
 
 <body>
