@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>{{ title }}</title>
+    <title>{{ name }}</title>
     <style>
         body {
             font-family: verdana;
@@ -48,9 +48,8 @@
 </head>
 
 <body>
-    {% for guide in guides %}
-    <h1>{{ guide.name }}</h1>
-    <p>{{ guide.description }}</p>
+    <h1>{{ name }}</h1>
+    <p>{{ description }}</p>
 
     <table class="history-grid">
         <thead>
@@ -61,9 +60,9 @@
             </tr>
         </thead>
         <tbody>
-            {% for sequence, editions in guide.sequences.items() %}
+            {% for sequence, editions in sequences.items() %}
             <tr class="sequence">
-                <td colspan="3">{{ sequence }} Sequence</td>
+                <td colspan="3">{{ sequence }}</td>
             </tr>
             {% for edition in editions %}
             <tr>
@@ -75,7 +74,6 @@
             {% endfor %}
         </tbody>
     </table>
-    {% endfor %}
 </body>
 
 </html>
