@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 
 from .models import Edition, Guide, IgInfo, IgList
+from .render import render_history
 
 
 def get_package_information(project_dir: Path) -> IgInfo:
@@ -88,7 +89,7 @@ def update_ig_list(info: IgInfo, ig_list_file: Path):
     ig_list_file.write_text(content, encoding="utf-8")
 
 
-def update_ig_history_file(ig_dir: Path, info: IgInfo):
+def update_ig_history_file(ig_dir: Path, info: IgInfo) -> Path:
     ig_dir.mkdir(parents=True, exist_ok=True)
 
     ig_history_file = ig_dir / "ig_history.json"
@@ -96,15 +97,15 @@ def update_ig_history_file(ig_dir: Path, info: IgInfo):
         content = ig_history_file.read_text(encoding="utf-8")
         guide = Guide.model_validate_json(content)
 
+        edition_found = False
         for i, edition in enumerate(guide.editions):
-            edition_found = False
             if edition.package == info.edition.package:
                 guide.editions[i] = info.edition
                 edition_found = True
                 break
 
-            if not edition_found:
-                guide.editions.append(info.edition)
+        if not edition_found:
+            guide.editions.append(info.edition)
 
     else:
         guide = Guide.model_validate(
@@ -116,6 +117,8 @@ def update_ig_history_file(ig_dir: Path, info: IgInfo):
 
     content = guide.model_dump_json(indent=4)
     ig_history_file.write_text(content, encoding="utf-8")
+
+    return ig_history_file
 
 
 def publish(project_dir: Path, ig_list_file: Path):
@@ -158,4 +161,5 @@ def publish(project_dir: Path, ig_list_file: Path):
     shutil.move(archive, archive_dir / archive.name)
 
     # Update history file
-    update_ig_history_file(pub_ig_dir, info)
+    hilstory_file = update_ig_history_file(pub_ig_dir, info)
+    render_history(hilstory_file)
