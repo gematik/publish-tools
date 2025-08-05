@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <title>{{ name }}</title>
+    <style>
+        body {
+            font-family: verdana;
+            font-size: 12px;
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+        table {
+            max-width: 100%;
+            background-color: transparent;
+            border-spacing: 0;
+        }
+
+        tr {
+            text-align: left;
+        }
+
+        table.history-grid {
+            font-size: 12px;
+            margin-bottom: 10px;
+            border: 1px solid silver;
+        }
+
+        table.history-grid th {
+            border: 1px solid silver;
+            padding: 3px;
+        }
+
+        table.history-grid td {
+            border: 1px solid silver;
+            padding: 3px;
+        }
+
+        table.history-grid tr.sequence {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+
+        thead {
+            background-color: #efefef;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>{{ name }}</h1>
+    <p>{{ description }}</p>
+
+    <table class="history-grid">
+        <thead>
+            <tr>
+                <th width="100px">IG Version</th>
+                <th width="100px">FHIR Version</th>
+                <th width="100px">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sequence, editions in sequences.items() %}
+            <tr class="sequence">
+                <td colspan="3">{{ sequence }} Sequence</td>
+            </tr>
+            {% for edition in editions %}
+            <tr>
+                <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
+                <td>{{ ", ".join(edition.fhir_version) }}</td>
+                <td>{{ edition.description }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
