@@ -9,20 +9,31 @@ def render_history(file: Path):
     content = file.read_text(encoding="utf-8")
     history = Guide.model_validate_json(content)
 
+    data = {"guides": [history.model_dump()]}
+    content = _render(data)
+
+    output = file.with_name("index.html")
+    output.write_text(content, encoding="utf-8")
+
+
+def _render(data: dict) -> str:
+    for guide in data["guides"]:
+        _create_sequences(guide)
+
     env = Environment(
         loader=PackageLoader("publish_tools"), autoescape=select_autoescape()
     )
 
-    data = history.model_dump()
+    template = env.get_template("history.jinja")
+    return template.render(**data)
 
+
+def _create_sequences(data: dict):
     data["sequences"] = {}
     # Handle sequences
-    for edition in sorted(history.editions, key=lambda x: x.ig_version, reverse=True):
-        if edition.name not in data["sequences"]:
-            data["sequences"][edition.name] = []
-        data["sequences"][edition.name].append(edition)
-
-    basic_body = env.get_template("basic_body.jinja")
-
-    output = file.with_name("index.html")
-    output.write_text(basic_body.render(**data), encoding="utf-8")
+    for edition in sorted(
+        data["editions"], key=lambda x: x["ig_version"], reverse=True
+    ):
+        if edition["name"] not in data["sequences"]:
+            data["sequences"][edition["name"]] = []
+        data["sequences"][edition["name"]].append(edition)

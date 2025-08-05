@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>{{ name }}</title>
+    <title>IG List</title>
     <style>
         body {
             font-family: verdana;
@@ -48,8 +48,9 @@
 </head>
 
 <body>
-    <h1>{{ name }}</h1>
-    <p>{{ description }}</p>
+    {% for guide in guides %}
+    <h1>{{ guide.name }}</h1>
+    <p>{{ guide.description }}</p>
 
     <table class="history-grid">
         <thead>
@@ -60,7 +61,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for sequence, editions in sequences.items() %}
+            {% for sequence, editions in guide.sequences.items() %}
             <tr class="sequence">
                 <td colspan="3">{{ sequence }} Sequence</td>
             </tr>
@@ -74,6 +75,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endfor %}
 </body>
 
 </html>
