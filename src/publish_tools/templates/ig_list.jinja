@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>{{ name }}</title>
+    <title>{{ title }}</title>
     <style>
         body {
             font-family: verdana;
@@ -48,12 +48,13 @@
 </head>
 
 <body>
-    <h1>{{ name }}</h1>
-    <p>{{ description }}</p>
+    {% for topic, sequences in topics.items() | sort %}
+    <h1>{{ topic }}</h1>
 
     <table class="history-grid">
         <thead>
             <tr>
+                <th width="100px">IG</th>
                 <th width="100px">IG Version</th>
                 <th width="100px">FHIR Version</th>
                 <th width="100px">Description</th>
@@ -62,10 +63,11 @@
         <tbody>
             {% for sequence, editions in sequences.items() | sort(reverse=True) %}
             <tr class="sequence">
-                <td colspan="3">{{ sequence }}</td>
+                <td colspan="4">{{ sequence }}</td>
             </tr>
-            {% for edition in editions | sort(attribute="ig_version",reverse=True) %}
+            {% for edition in editions | sort(attribute="name") %}
             <tr>
+                <td><a href="{{ edition.url }}">{{ edition.name }}</a></td>
                 <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
                 <td>{{ ", ".join(edition.fhir_version) }}</td>
                 <td>{{ edition.description }}</td>
@@ -74,6 +76,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endfor %}
 </body>
 
 </html>

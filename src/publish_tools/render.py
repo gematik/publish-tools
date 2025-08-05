@@ -1,8 +1,11 @@
+import re
 from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .models import Guide, IgList
+
+TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 
 
 def render_history(file: Path):
@@ -14,7 +17,7 @@ def render_history(file: Path):
     # Create sequences
     data["sequences"] = {}
     # Handle sequences
-    for edition in sorted(history.editions, key=lambda x: x.ig_version, reverse=True):
+    for edition in history.editions:
         if edition.name not in data["sequences"]:
             data["sequences"][edition.name] = []
         data["sequences"][edition.name].append(edition)
@@ -29,9 +32,31 @@ def render_ig_list(file: Path):
     content = file.read_text(encoding="utf-8")
     ig_list = IgList.model_validate_json(content)
 
-    data = ig_list.model_dump()
-    data["title"] = "IG List"
-    content = _render(data)
+    data = {"title": "IG List", "topics": {}}
+    for guide in ig_list.guides:
+        for edition in guide.editions:
+            topic = (
+                match[1]
+                if (match := TOPIC_REGEX.match(edition.name)) is not None
+                else edition.name
+            )
+            if topic not in data["topics"]:
+                data["topics"][topic] = {}
+
+            if edition.name not in data["topics"][topic]:
+                data["topics"][topic][edition.name] = []
+
+            g = {
+                "name": guide.name,
+                "ig_version": edition.ig_version,
+                "fhir_version": edition.fhir_version,
+                "description": edition.description,
+                "url": edition.url,
+            }
+
+            data["topics"][topic][edition.name].append(g)
+
+    content = _render(data, "ig_list.jinja")
 
     output = file.with_name("index.html")
     output.write_text(content, encoding="utf-8")
