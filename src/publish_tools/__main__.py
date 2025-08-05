@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from .models import Edition, Guide, IgList
+from .models import Edition, Guide, IgInfo, IgList
 
 
-def get_package_information(project_dir: Path) -> Guide:
+def get_package_information(project_dir: Path) -> IgInfo:
     output_dir = project_dir / "output"
 
     ig_file = (
@@ -22,29 +22,27 @@ def get_package_information(project_dir: Path) -> Guide:
     ig_info = json.loads(ig_file.read_text(encoding="utf-8"))
     pub_info = json.loads(pub_file.read_text(encoding="utf-8"))
 
-    info = Guide(
+    info = IgInfo(
         name=pub_info["title"],
         category=pub_info["category"],
         npm_name=pub_info["package-id"],
         description=pub_info["introduction"],
         canonical=ig_info["url"].rsplit("/", 2)[0],
         ci_build=pub_info["ci-build"],
-        editions=[
-            Edition(
-                name=pub_info["sequence"],
-                ig_version=pub_info["version"],
-                package=f"{pub_info["package-id"]}#{pub_info["version"]}",
-                fhir_version=ig_info["fhirVersion"],
-                url=pub_info["path"],
-                description=pub_info["desc"],
-            )
-        ],
+        edition=Edition(
+            name=pub_info["sequence"],
+            ig_version=pub_info["version"],
+            package=f"{pub_info["package-id"]}#{pub_info["version"]}",
+            fhir_version=ig_info["fhirVersion"],
+            url=pub_info["path"],
+            description=pub_info["desc"],
+        ),
     )
 
     return info
 
 
-def update_ig_list(info: Guide, ig_list_file: Path):
+def update_ig_list(info: IgInfo, ig_list_file: Path):
     ig_list = None
 
     if ig_list_file.exists():
@@ -64,20 +62,26 @@ def update_ig_list(info: Guide, ig_list_file: Path):
 
             edition_found = False
             for i, edition in enumerate(guide.editions):
-                if edition.package == info.editions[0].package:
-                    guide.editions[i] = info.editions[0]
+                if edition.package == info.edition.package:
+                    guide.editions[i] = info.edition
                     edition_found = True
                     break
 
             if not edition_found:
-                guide.editions.append(info.editions[0])
+                guide.editions.append(info.edition)
 
             guide_found = True
             break
 
     # If guide does not exists, add as new one
     if not guide_found:
-        ig_list.guides.append(info)
+        guide = Guide.model_validate(
+            {
+                "editions": [info.edition],
+                **info.model_dump(),
+            }
+        )
+        ig_list.guides.append(guide)
 
     content = ig_list.model_dump_json(indent=4)
     ig_list_file.write_text(content, encoding="utf-8")
