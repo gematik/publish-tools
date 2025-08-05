@@ -85,3 +85,35 @@ def update_ig_list(info: IgInfo, ig_list_file: Path):
 
     content = ig_list.model_dump_json(indent=4)
     ig_list_file.write_text(content, encoding="utf-8")
+
+
+def publish(project_dir: Path, info: IgInfo):
+    ######
+    # Create directory for IG contents
+    ######
+    pub_dir = project_dir / "publish"
+    pub_dir.mkdir(parents=True, exist_ok=True)
+
+    output_dir = project_dir / "output"
+
+    pub_project = info.canonical.rsplit("/", 1)[1]
+    pub_ig_dir = pub_dir / pub_project
+    pub_ig_version_dir = pub_ig_dir / info.edition.ig_version
+
+    # Clear previous content
+    if pub_ig_dir.exists():
+        shutil.rmtree(pub_ig_version_dir)
+
+    shutil.copytree(output_dir, pub_ig_version_dir)
+
+    ######
+    # Create archive
+    ######
+    archive_dir = pub_dir / "ig-build-zips"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    archive = shutil.make_archive(
+        info.edition.package, "zip", pub_ig_dir, pub_ig_version_dir
+    )
+
+    shutil.move(archive, archive_dir)
