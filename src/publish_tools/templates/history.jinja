@@ -1,37 +1,39 @@
 <html>
 
 <head>
-    <title>{{ name }}</title>
+    <title>{{ name }} History</title>
     {% include 'style.html' %}
 </head>
 
 <body>
-    <h1>{{ name }}</h1>
-    <p>{{ description }}</p>
+    <div class="container">
+        <h1>{{ name }} History</h1>
+        <p>{{ description }}</p>
 
-    <table class="history-grid">
-        <thead>
-            <tr>
-                <th width="100px">IG Version</th>
-                <th width="100px">FHIR Version</th>
-                <th width="100px">Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for sequence, editions in sequences.items() | sort(reverse=True) %}
-            <tr class="sequence">
-                <td colspan="3">{{ sequence }}</td>
-            </tr>
-            {% for edition in editions | sort(attribute="ig_version",reverse=True) %}
-            <tr>
-                <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
-                <td>{{ ", ".join(edition.fhir_version) }}</td>
-                <td>{{ edition.description }}</td>
-            </tr>
-            {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
+        <table class="history-grid">
+            <thead>
+                <tr>
+                    <th width="100px">IG Version</th>
+                    <th width="100px">FHIR Version</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sequence, editions in sequences.items() | sort(reverse=True) %}
+                <tr class="sequence">
+                    <td colspan="3">{{ sequence }}</td>
+                </tr>
+                {% for edition in editions | sort(attribute="ig_version",reverse=True) %}
+                <tr>
+                    <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
+                    <td>{{ ", ".join(edition.fhir_version) }}</td>
+                    <td>{{ edition.description }}</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 
 </html>
