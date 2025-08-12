@@ -3,6 +3,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
+from .ig_list import FILE_NAME as IG_LIST_FILE_NAME
 from .models import Guide, IgList
 
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
@@ -28,7 +29,8 @@ def render_history(file: Path):
     output.write_text(content, encoding="utf-8")
 
 
-def render_ig_list(file: Path):
+def render_ig_list(registry_dir: Path):
+    file = registry_dir / IG_LIST_FILE_NAME
     content = file.read_text(encoding="utf-8")
     ig_list = IgList.model_validate_json(content)
 

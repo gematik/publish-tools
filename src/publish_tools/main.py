@@ -18,29 +18,29 @@ def main():
         help="Path of the project to publish",
     )
     publish_parser.add_argument(
-        "--ig-list",
+        "--ig-registry",
         type=Path,
         required=True,
-        help="IG list file to be updated",
+        help="Directory that contains the IG registry related files",
     )
 
     render_list_parser = subparsers.add_parser(
         "render-list", help="Render the IG list file"
     )
     render_list_parser.add_argument(
-        "--ig-list",
+        "--ig-registry",
         type=Path,
         required=True,
-        help="IG list file to render",
+        help="Directory that contains the IG registry related files",
     )
 
     args = parser.parse_args()
 
     if args.cmd == "publish":
-        publish(args.project_dir, args.ig_list)
+        publish(args.project_dir, args.ig_registry)
 
     elif args.cmd == "render-list":
-        render_ig_list(args.ig_list)
+        render_ig_list(args.ig_registry)
 
     else:
         parser.print_help()

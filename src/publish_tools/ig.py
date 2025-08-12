@@ -46,9 +46,9 @@ def get_package_information(project_dir: Path) -> IgInfo:
     return info
 
 
-def publish(project_dir: Path, ig_list_file: Path):
+def publish(project_dir: Path, ig_registry_dir: Path):
     info = get_package_information(project_dir)
-    update_ig_list(info, ig_list_file)
+    update_ig_list(info, ig_registry_dir)
 
     ######
     # Create directory for IG contents

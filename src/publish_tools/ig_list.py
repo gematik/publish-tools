@@ -2,10 +2,13 @@ from pathlib import Path
 
 from .models import Guide, IgInfo, IgList
 
+FILE_NAME = "ig_list.json"
 
-def update_ig_list(info: IgInfo, ig_list_file: Path):
+
+def update_ig_list(info: IgInfo, ig_registry_dir: Path):
     ig_list = None
 
+    ig_list_file = ig_registry_dir / FILE_NAME
     if ig_list_file.exists():
         # Read the existing data
         content = ig_list_file.read_text(encoding="utf-8")
