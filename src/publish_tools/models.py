@@ -51,6 +51,7 @@ class Edition(BaseModel):
 
 class IgInfo(IgDef):
     edition: Edition
+    publisher: str
 
 
 class Guide(IgDef):
