@@ -7,7 +7,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["pydantic (>=2.11.7,<3.0.0)", "jinja2 (>=3.1.6,<4.0.0)"]
+dependencies = ["pydantic (>=2.11.7,<3.0.0)", "jinja2 (>=3.1.6,<4.0.0)", "pydantic-xml[lxml] (>=2.17.3,<3.0.0)"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
