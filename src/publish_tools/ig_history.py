@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from .log import log_succ
 from .models import Guide, IgInfo
 
 
@@ -31,5 +32,7 @@ def update_ig_history_file(ig_dir: Path, info: IgInfo) -> Path:
 
     content = guide.model_dump_json(indent=4, by_alias=True)
     ig_history_file.write_text(content, encoding="utf-8")
+
+    log_succ("created/updated history file")
 
     return ig_history_file

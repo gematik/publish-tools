@@ -4,6 +4,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .ig_list import FILE_NAME as IG_LIST_FILE_NAME
+from .log import log_succ
 from .models import Guide, IgList
 
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
@@ -27,6 +28,7 @@ def render_history(file: Path):
 
     output = file.with_name("index.html")
     output.write_text(content, encoding="utf-8")
+    log_succ("rendered ig history")
 
 
 def render_ig_list(registry_dir: Path):
@@ -62,6 +64,7 @@ def render_ig_list(registry_dir: Path):
 
     output = file.with_name("index.html")
     output.write_text(content, encoding="utf-8")
+    log_succ("rendered ig list")
 
 
 def _render(data: dict, template_name: str) -> str:
