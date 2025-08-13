@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from .log import log_succ
 from .models import Guide, IgInfo, IgList
 
 FILE_NAME = "ig_list.json"
@@ -49,3 +50,4 @@ def update_ig_list(info: IgInfo, ig_registry_dir: Path):
 
     content = ig_list.model_dump_json(indent=4, by_alias=True)
     ig_list_file.write_text(content, encoding="utf-8")
+    log_succ(f"updated ig list {ig_list_file}")
