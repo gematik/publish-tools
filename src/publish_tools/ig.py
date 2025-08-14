@@ -59,6 +59,7 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     ######
     # Create directory for IG contents
     ######
+    project_dir = project_dir.absolute()
     pub_dir = project_dir / "publish"
     pub_dir.mkdir(parents=True, exist_ok=True)
 
@@ -67,6 +68,7 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     pub_project = info.canonical.rsplit("/", 1)[1]
     pub_ig_dir = pub_dir / pub_project
     pub_ig_version_dir = pub_ig_dir / info.edition.ig_version
+    pub_ig_version_dir.mkdir(parents=True, exist_ok=True)
 
     # Clear previous content
     if pub_ig_dir.exists():
