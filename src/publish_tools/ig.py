@@ -86,10 +86,10 @@ def publish(project_dir: Path, ig_registry_dir: Path):
 
     archive = Path(
         shutil.make_archive(
-            info.edition.package,
-            "zip",
-            pub_ig_dir,
-            pub_ig_version_dir,
+            base_name=info.edition.package,
+            format="zip",
+            root_dir=pub_ig_version_dir.parent,
+            base_dir=pub_ig_version_dir.name,
         )
     )
 
