@@ -23,7 +23,7 @@
                 <tr class="sequence">
                     <td colspan="3">{{ sequence }}</td>
                 </tr>
-                {% for edition in editions | sort(attribute="ig_version",reverse=True) %}
+                {% for edition in editions | sort(attribute="ig_version", reverse=True) %}
                 <tr>
                     <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
                     <td>{{ ", ".join(edition.fhir_version) }}</td>
