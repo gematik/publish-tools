@@ -38,7 +38,7 @@ def get_package_information(project_dir: Path) -> IgInfo:
         npm_name=pub_info["package-id"],
         description=pub_info["introduction"],
         canonical=ig_info["url"].rsplit("/", 2)[0],
-        ci_build=pub_info["ci-build"],
+        ci_build=pub_info.get("ci-build", ""),
         edition=Edition(
             name=pub_info["sequence"],
             ig_version=pub_info["version"],
