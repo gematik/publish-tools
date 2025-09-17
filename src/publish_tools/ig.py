@@ -1,10 +1,9 @@
 import json
-import shutil
 from pathlib import Path
 
 from .ig_history import update_ig_history_file
 from .ig_list import update_ig_list
-from .log import log_error, log_info, log_succ
+from .log import log_error, log_info
 from .models import Edition, IgInfo
 from .package_feed import update_package_feed
 from .render import render_history, render_ig_list
@@ -63,38 +62,43 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     pub_dir = project_dir / "publish"
     pub_dir.mkdir(parents=True, exist_ok=True)
 
-    output_dir = project_dir / "output"
+    # output_dir = project_dir / "output"
 
     pub_project = info.canonical.rsplit("/", 1)[1]
     pub_ig_dir = pub_dir / pub_project
-    pub_ig_version_dir = pub_ig_dir / info.edition.ig_version
-    pub_ig_version_dir.mkdir(parents=True, exist_ok=True)
 
-    # Clear previous content
-    if pub_ig_dir.exists():
-        shutil.rmtree(pub_ig_version_dir)
-        log_info("removed previous versioned IG")
+    ###
+    # Do not create versioned copies of the generated IG
+    ###
 
-    shutil.copytree(output_dir, pub_ig_version_dir)
-    log_succ("created versioned IG")
+    # pub_ig_version_dir = pub_ig_dir / info.edition.ig_version
+    # pub_ig_version_dir.mkdir(parents=True, exist_ok=True)
+
+    # # Clear previous content
+    # if pub_ig_dir.exists():
+    #     shutil.rmtree(pub_ig_version_dir)
+    #     log_info("removed previous versioned IG")
+
+    # shutil.copytree(output_dir, pub_ig_version_dir)
+    # log_succ("created versioned IG")
 
     ######
     # Create archive
     ######
-    archive_dir = pub_dir / "ig-build-zips"
-    archive_dir.mkdir(parents=True, exist_ok=True)
+    # archive_dir = pub_dir / "ig-build-zips"
+    # archive_dir.mkdir(parents=True, exist_ok=True)
 
-    archive = Path(
-        shutil.make_archive(
-            base_name=info.edition.package,
-            format="zip",
-            root_dir=pub_ig_version_dir.parent,
-            base_dir=pub_ig_version_dir.name,
-        )
-    )
+    # archive = Path(
+    #     shutil.make_archive(
+    #         base_name=info.edition.package,
+    #         format="zip",
+    #         root_dir=pub_ig_version_dir.parent,
+    #         base_dir=pub_ig_version_dir.name,
+    #     )
+    # )
 
-    shutil.move(archive, archive_dir / archive.name)
-    log_succ("created IG archive")
+    # shutil.move(archive, archive_dir / archive.name)
+    # log_succ("created IG archive")
 
     # Update history file
     history_file = update_ig_history_file(pub_ig_dir, info)
