@@ -14,8 +14,7 @@
             <thead>
                 <tr>
                     <th width="100px">IG</th>
-                    <th width="100px">IG Version</th>
-                    <th width="100px">FHIR Version</th>
+                    <th width="100px">Version</th>
                     <th>Description</th>
                 </tr>
             </thead>
@@ -28,7 +27,6 @@
                 <tr>
                     <td><a href="{{ edition.url }}">{{ edition.name }}</a></td>
                     <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
-                    <td>{{ ", ".join(edition.fhir_version) }}</td>
                     <td>{{ edition.description }}</td>
                 </tr>
                 {% endfor %}
