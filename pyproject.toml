@@ -1,6 +1,6 @@
 [project]
 name = "publish-tools"
-version = "0.1.3"
+version = "0.1.4"
 description = ""
 authors = [
     { name = "Alexander Essenwanger", email = "alexander.essenwanger@gematik.de" },

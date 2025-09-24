@@ -18,7 +18,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for sequence, editions in sequences.items() | sort(reverse=True) %}
+                {% for sequence, editions in sequences.items() | sort_sequences(reverse=True) %}
                 <tr class="sequence">
                     <td colspan="3">{{ sequence }}</td>
                 </tr>

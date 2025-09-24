@@ -7,7 +7,7 @@
 
 <body>
     <div class="container">
-        {% for topic, sequences in topics.items() | sort %}
+        {% for topic, sequences in topics.items() | sort_sequences %}
         <h1>{{ topic }}</h1>
 
         <table class="history-grid">
