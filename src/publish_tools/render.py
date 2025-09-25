@@ -1,7 +1,9 @@
 import re
 from pathlib import Path
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader
+from jinja2.filters import do_mark_safe as safe
+from markupsafe import escape
 
 from .ig_list import FILE_NAME as IG_LIST_FILE_NAME
 from .log import log_succ
@@ -9,7 +11,8 @@ from .models import Guide, IgList
 
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 
-# Matches 'ballot' or 'Vorabveröffentlichung' (with leading separators/spaces) anywhere
+# Matches 'ballot' or 'Vorabveröffentlichung'
+# (with leading separators/spaces) anywhere
 REMOVE_TOKEN_REGEX = re.compile(
     r"([\s\-_()/]*)\b(?:ballot|vorabveröffentlichung)\b", re.IGNORECASE
 )
@@ -73,10 +76,9 @@ def render_ig_list(registry_dir: Path):
 
 
 def _render(data: dict, template_name: str) -> str:
-    env = Environment(
-        loader=PackageLoader("publish_tools"), autoescape=select_autoescape()
-    )
+    env = Environment(loader=PackageLoader("publish_tools"))
     env.filters["sort_sequences"] = sort_sequences
+    env.filters["safe_escape"] = safe_escape
 
     template = env.get_template(template_name)
     return template.render(**data)
@@ -111,3 +113,29 @@ def sort_sequences(items: list[tuple[str, dict]], reverse=False):
         result.extend(sorted(values))
 
     return result
+
+
+def safe_escape(text: str) -> str:
+    """
+    Escape special symbols, especifically umlauts.
+    """
+
+    # Use the default escaping function, while converting back to string to
+    # avoid later escaping again like the '&' from the umlauts
+    text = str(escape(text))
+
+    mapping = {
+        "ä": "&auml;",
+        "ö": "&ouml;",
+        "ü": "&uuml;",
+        "Ä": "&Auml;",
+        "Ö": "&Ouml;",
+        "Ü": "&Uuml;",
+        "ß": "&szlig;",
+    }
+
+    for k, v in mapping.items():
+        text = text.replace(k, v)
+
+    # Mark this as safe so it will not be escaped later again
+    return safe(text)

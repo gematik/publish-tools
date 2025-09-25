@@ -45,4 +45,4 @@ def update_package_feed(ig_dir: Path, info: IgInfo) -> Path:
             return file
 
     else:
-        log_error("package feed missing, could not update")
+        raise Exception("package feed missing, could not update")

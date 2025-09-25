@@ -1,14 +1,15 @@
 <html>
 
 <head>
-    <title>{{ name }} History</title>
+    <title>{{ name | safe_escape }} History</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     {% include 'style.html' %}
 </head>
 
 <body>
     <div class="container">
-        <h1>{{ name }} History</h1>
-        <p>{{ description }}</p>
+        <h1>{{ name | safe_escape }} History</h1>
+        <p>{{ description | safe_escape }}</p>
 
         <table class="history-grid">
             <thead>
@@ -20,12 +21,12 @@
             <tbody>
                 {% for sequence, editions in sequences.items() | sort_sequences(reverse=True) %}
                 <tr class="sequence">
-                    <td colspan="3">{{ sequence }}</td>
+                    <td colspan="3">{{ sequence | safe_escape }}</td>
                 </tr>
                 {% for edition in editions | sort(attribute="ig_version", reverse=True) %}
                 <tr>
                     <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
-                    <td>{{ edition.description }}</td>
+                    <td>{{ edition.description | safe_escape }}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}

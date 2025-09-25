@@ -1,6 +1,6 @@
 [project]
 name = "publish-tools"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
 authors = [
     { name = "Alexander Essenwanger", email = "alexander.essenwanger@gematik.de" },
@@ -12,6 +12,7 @@ dependencies = [
     "jinja2 (>=3.1.6,<4.0.0)",
     "pydantic-xml[lxml] (>=2.17.3,<3.0.0)",
     "tzlocal (>=5.3.1,<6.0.0)",
+    "markupsafe (>=3.0.2,<4.0.0)",
 ]
 
 [build-system]
