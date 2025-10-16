@@ -1,4 +1,5 @@
 import argparse
+import importlib.metadata
 import os
 from pathlib import Path
 
@@ -34,6 +35,8 @@ def main():
         help="Directory that contains the IG registry related files",
     )
 
+    subparsers.add_parser("version", help="Get the version")
+
     args = parser.parse_args()
 
     if args.cmd == "publish":
@@ -41,6 +44,9 @@ def main():
 
     elif args.cmd == "render-list":
         render_ig_list(args.ig_registry)
+
+    elif args.cmd == "version":
+        print(importlib.metadata.version(__package__))
 
     else:
         parser.print_help()
