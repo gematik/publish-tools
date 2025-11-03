@@ -145,10 +145,10 @@ docker run --rm -it gematik1/publisher:latest <command>
 ```
 
 ## Security Policy
-If you want to see the security policy, please check our [SECURITY.md](.github/SECURITY.md).
+If you want to see the security policy, please check our [SECURITY.md](./SECURITY.md).
 
 ## Contributing
-If you want to contribute, please check our [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 >>>>>>> 428a1ae (Added OSPO conventions, Dockerfile for building the tool)
