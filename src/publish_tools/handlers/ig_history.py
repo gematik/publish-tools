@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ..log import log_succ
+from .. import log
 from ..models.guide import Guide, IgInfo
 from .helper import render as render_helper
 
@@ -36,7 +36,7 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     content = guide.model_dump_json(indent=4, by_alias=True)
     ig_history_file.write_text(content, encoding="utf-8")
 
-    log_succ("created/updated history file")
+    log.succ("created/updated history file")
 
     return ig_history_file
 
@@ -59,4 +59,4 @@ def render(file: Path):
 
     output = file.with_name("index.html")
     output.write_text(content, encoding="utf-8")
-    log_succ("rendered ig history")
+    log.succ("rendered ig history")

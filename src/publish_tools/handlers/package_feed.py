@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tzlocal import get_localzone
 
-from ..log import log_info, log_succ
+from .. import log
 from ..models.guide import IgInfo
 from ..models.package_feed import PackageDateTime, PackageFeed, PackageGuid, PackageItem
 
@@ -34,7 +34,7 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
 
     for i, item in enumerate(feed.channel.item):
         if item.guid.url == pkg_info.guid.url:
-            log_info("no new package, did not update package feed")
+            log.info("no new package, did not update package feed")
             return file
 
     feed.channel.last_build_date = now
@@ -43,5 +43,5 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     content = feed.to_xml(pretty_print=True, skip_empty=True)
     file.write_bytes(content)
 
-    log_succ("updated package feed")
+    log.succ("updated package feed")
     return file

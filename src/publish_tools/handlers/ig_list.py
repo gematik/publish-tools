@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from ..log import log_succ
+from .. import log
 from ..models.guide import Guide, IgInfo
 from ..models.ig_list import IgList
 from .helper import render as render_helper
@@ -57,7 +57,7 @@ def update(info: IgInfo, ig_registry_dir: Path):
 
     content = ig_list.model_dump_json(indent=4, by_alias=True)
     ig_list_file.write_text(content, encoding="utf-8")
-    log_succ(f"updated ig list {ig_list_file}")
+    log.succ(f"updated ig list {ig_list_file}")
 
 
 def render(registry_dir: Path):
@@ -93,4 +93,4 @@ def render(registry_dir: Path):
 
     output = file.with_name("index.html")
     output.write_text(content, encoding="utf-8")
-    log_succ("rendered ig list")
+    log.succ("rendered ig list")

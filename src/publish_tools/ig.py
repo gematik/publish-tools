@@ -1,27 +1,27 @@
 import json
 from pathlib import Path
 
+from . import log
 from .handlers import ig_history, ig_list, package_feed
-from .log import log_error, log_info
 from .models.guide import Edition, IgInfo
 
 
 def get_package_information(project_dir: Path) -> IgInfo:
     output_dir = project_dir / "output"
 
-    log_info(f"get package information from {project_dir}")
+    log.info(f"get package information from {project_dir}")
     ig_file = (
         res[0]
         if len(res := list(output_dir.glob("ImplementationGuide*.json"))) == 1
         else None
     )
     if ig_file is None:
-        log_error("package not built")
+        log.error("package not built")
         raise Exception("package not built")
 
     pub_file = project_dir / "publication-request.json"
     if pub_file is None:
-        log_error("publication request missing")
+        log.error("publication request missing")
         raise Exception("publication request missing")
 
     ig_info = json.loads(ig_file.read_text(encoding="utf-8"))
@@ -50,7 +50,7 @@ def get_package_information(project_dir: Path) -> IgInfo:
 
 def publish(project_dir: Path, ig_registry_dir: Path):
     info = get_package_information(project_dir)
-    log_info(f"publishing {info.name} ({info.edition.package})")
+    log.info(f"publishing {info.name} ({info.edition.package})")
 
     ######
     # Create directory for IG contents
