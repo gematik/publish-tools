@@ -2,7 +2,8 @@ import re
 from pathlib import Path
 
 from .. import log
-from ..models.guide import Guide, IgInfo
+from ..models.guide import Guide
+from ..models.ig_info import IgInfo
 from ..models.ig_list import IgList
 from .helper import render as render_helper
 

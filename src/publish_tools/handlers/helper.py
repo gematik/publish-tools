@@ -1,11 +1,11 @@
-# Matches 'ballot' or 'Vorabveröffentlichung'
-# (with leading separators/spaces) anywhere
 import re
 
 from jinja2 import Environment, PackageLoader
 from jinja2.filters import do_mark_safe as safe
 from markupsafe import escape
 
+# Matches 'ballot' or 'Vorabveröffentlichung'
+# (with leading separators/spaces) anywhere
 REMOVE_TOKEN_REGEX = re.compile(
     r"([\s\-_()/]*)\b(?:ballot|vorabveröffentlichung)\b", re.IGNORECASE
 )

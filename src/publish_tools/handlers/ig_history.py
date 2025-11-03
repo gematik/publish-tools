@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from .. import log
-from ..models.guide import Guide, IgInfo
+from ..models.guide import Guide
+from ..models.ig_info import IgInfo
 from .helper import render as render_helper
 
 FILE_NAME = "ig_history.json"

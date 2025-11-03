@@ -4,7 +4,7 @@ from pathlib import Path
 from tzlocal import get_localzone
 
 from .. import log
-from ..models.guide import IgInfo
+from ..models.ig_info import IgInfo
 from ..models.package_feed import PackageDateTime, PackageFeed, PackageGuid, PackageItem
 
 FILE_NAME = "package-feed.xml"
