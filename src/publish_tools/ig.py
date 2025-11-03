@@ -1,12 +1,9 @@
 import json
 from pathlib import Path
 
-from .ig_history import update_ig_history_file
-from .ig_list import update_ig_list
+from .handlers import ig_history, ig_list, package_feed
 from .log import log_error, log_info
 from .models.guide import Edition, IgInfo
-from .package_feed import update_package_feed
-from .render import render_history, render_ig_list
 
 
 def get_package_information(project_dir: Path) -> IgInfo:
@@ -101,11 +98,11 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     # log_succ("created IG archive")
 
     # Update history file
-    history_file = update_ig_history_file(pub_ig_dir, info)
-    render_history(history_file)
+    history_file = ig_history.update(pub_ig_dir, info)
+    ig_history.render(history_file)
 
     # Update ig list and package feed
-    update_ig_list(info, ig_registry_dir)
-    render_ig_list(ig_registry_dir)
+    ig_list.update(info, ig_registry_dir)
+    ig_list.render(ig_registry_dir)
 
-    update_package_feed(ig_registry_dir, info)
+    package_feed.update(ig_registry_dir, info)
