@@ -7,7 +7,8 @@ from markupsafe import escape
 
 from .ig_list import FILE_NAME as IG_LIST_FILE_NAME
 from .log import log_succ
-from .models import Guide, IgList
+from .models.guide import Guide
+from .models.ig_list import IgList
 
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 

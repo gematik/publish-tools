@@ -3,8 +3,9 @@ from pathlib import Path
 
 from tzlocal import get_localzone
 
-from .log import log_error, log_info, log_succ
-from .models import IgInfo, PackageDateTime, PackageFeed, PackageGuid, PackageItem
+from .log import log_info, log_succ
+from .models.guide import IgInfo
+from .models.package_feed import PackageDateTime, PackageFeed, PackageGuid, PackageItem
 
 
 def update_package_feed(ig_dir: Path, info: IgInfo) -> Path:

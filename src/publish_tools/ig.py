@@ -4,7 +4,7 @@ from pathlib import Path
 from .ig_history import update_ig_history_file
 from .ig_list import update_ig_list
 from .log import log_error, log_info
-from .models import Edition, IgInfo
+from .models.guide import Edition, IgInfo
 from .package_feed import update_package_feed
 from .render import render_history, render_ig_list
 

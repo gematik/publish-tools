@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from .log import log_succ
-from .models import Guide, IgInfo
+from .models.guide import Guide, IgInfo
 
 
 def update_ig_history_file(ig_dir: Path, info: IgInfo) -> Path:

@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from .log import log_succ
-from .models import Guide, IgInfo, IgList
+from .models.guide import Guide, IgInfo
+from .models.ig_list import IgList
 
 FILE_NAME = "ig_list.json"
 
