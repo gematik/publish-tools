@@ -15,7 +15,7 @@ class IgInfo(BaseModel):
     )
     introduction: str
     canonical: AnyUrl
-    ci_build: str = Field(
+    ci_build: AnyUrl | None = Field(
         serialization_alias="ci-build",
         validation_alias=AliasChoices("ci-build", "ci_build"),
     )

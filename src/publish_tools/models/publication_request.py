@@ -9,10 +9,10 @@ class PublicationRequest(BaseModel):
         validation_alias=AliasChoices("package-id", "package_id"),
     )
     introduction: str
-    ci_build: str = Field(
+    ci_build: AnyUrl | None = Field(
         serialization_alias="ci-build",
         validation_alias=AliasChoices("ci-build", "ci_build"),
-        default="",
+        default=None,
     )
     sequence: str
     version: str

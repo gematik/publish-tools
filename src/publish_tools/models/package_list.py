@@ -3,16 +3,20 @@ from typing import List
 
 from pydantic import AliasChoices, AnyUrl, BaseModel, Field
 
+from .sushi_config import SushiConfigReleaseLabel
+
 
 class PackageListSimpleEntry(BaseModel):
     version: str
     desc: str
     path: AnyUrl
-    status: str
+    status: SushiConfigReleaseLabel
     current: bool
 
 
-class PackageListCurrentEntry(PackageListSimpleEntry):
+class PackageListCiBuildEntry(PackageListSimpleEntry):
+    version: str = "current"
+    status: SushiConfigReleaseLabel = SushiConfigReleaseLabel.CI_BUILD
     current: bool = True
 
 
@@ -34,4 +38,4 @@ class PackageList(BaseModel):
     canonical: AnyUrl
     title: str
     introduction: str
-    list: List[PackageListCurrentEntry | PackageListSpecificEntry] = []
+    list: List[PackageListCiBuildEntry | PackageListSpecificEntry] = []
