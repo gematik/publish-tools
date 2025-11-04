@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import yaml
@@ -77,13 +78,19 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     pub_project = info.canonical.path.rsplit("/", 1)[-1]
     pub_ig_dir = pub_dir / pub_project
 
-    # TODO: If project subdir exists, migrate data
+    # If project subdir exists, migrate data
+    if pub_ig_dir.exists():
+        for file in pub_ig_dir.iterdir():
+            shutil.move(file, pub_dir)
+        pub_ig_dir.rmdir()
+
+    del pub_ig_dir
 
     # Update history file
-    history_file = ig_history.update(pub_ig_dir, info)
+    history_file = ig_history.update(pub_dir, info)
     ig_history.render(history_file)
 
-    package_list.update(pub_ig_dir, info)
+    package_list.update(pub_dir, info)
 
     # Update ig list and package feed
     ig_list.update(info, ig_registry_dir)
