@@ -19,7 +19,10 @@ class PackageListCurrentEntry(PackageListSimpleEntry):
 class PackageListSpecificEntry(PackageListSimpleEntry):
     date: datetime_date
     sequence: str
-    fhirversion: str
+    fhir_version: str = Field(
+        serialization_alias="fhirversion",
+        validation_alias=AliasChoices("fhirversion", "fhir_version"),
+    )
     current: bool = False
 
 

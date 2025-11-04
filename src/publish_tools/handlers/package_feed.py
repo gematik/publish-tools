@@ -16,10 +16,10 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     now = PackageDateTime(date_time=datetime.now(tz=get_localzone()))
 
     pkg_info = PackageItem(
-        title=f"{info.name} version {info.edition.ig_version}",
-        description=info.edition.description,
-        link=f"{info.edition.url}/package.tgz",
-        guid=PackageGuid(url=f"{info.edition.url}/package.tgz"),
+        title=f"{info.title} version {info.version}",
+        description=info.desc,
+        link=f"{info.path}/package.tgz",
+        guid=PackageGuid(url=f"{info.path}/package.tgz"),
         creator=info.publisher,
         fhir_version=info.edition.fhir_version[0],
         pub_date=now,

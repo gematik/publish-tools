@@ -31,11 +31,11 @@ def update(info: IgInfo, ig_registry_dir: Path):
     # Check guides if entry already exists
     guide_found = False
     for guide in ig_list.guides:
-        if guide.npm_name == info.npm_name:
+        if guide.npm_name == info.package_id:
 
             edition_found = False
             for i, edition in enumerate(guide.editions):
-                if edition.package == info.edition.package:
+                if edition.package == info.package:
                     guide.editions[i] = info.edition
                     edition_found = True
                     break

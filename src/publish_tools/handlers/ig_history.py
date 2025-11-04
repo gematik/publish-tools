@@ -18,8 +18,8 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
 
         edition_found = False
         for i, edition in enumerate(guide.editions):
-            if edition.package == info.edition.package:
-                guide.editions[i] = info.edition
+            if edition.package == info.package:
+                guide.editions[i] = edition
                 edition_found = True
                 break
 

@@ -5,7 +5,6 @@ import yaml
 
 from . import log
 from .handlers import ig_history, ig_list, package_feed, package_list
-from .models.guide import Edition
 from .models.ig_info import IgInfo
 from .models.implementation_guide import ImplementationGuide
 from .models.publication_request import PublicationRequest
@@ -45,23 +44,20 @@ def get_package_information(project_dir: Path) -> IgInfo:
     sushi_config = SushiConfig.model_validate(sushi_config_cont)
 
     info = IgInfo(
-        name=pub_req.title,
+        title=pub_req.title,
         category=pub_req.category,
         publisher=imp_guide.publisher,
-        npm_name=imp_guide.package_id,
-        description=pub_req.introduction,
+        package_id=imp_guide.package_id,
+        introduction=pub_req.introduction,
         canonical=sushi_config.canonical,
         ci_build=pub_req.ci_build,
-        edition=Edition(
-            name=pub_req.sequence,
-            ig_version=pub_req.version,
-            package=f"{pub_req.package_id}#{pub_req.version}",
-            fhir_version=imp_guide.fhir_version,
-            url=pub_req.path,
-            description=pub_req.desc,
-            date=imp_guide.date,
-            status=sushi_config.release_label,
-        ),
+        sequence=pub_req.sequence,
+        version=pub_req.version,
+        fhir_version=imp_guide.fhir_version,
+        path=pub_req.path,
+        desc=pub_req.desc,
+        date=imp_guide.date,
+        release_label=sushi_config.release_label,
     )
 
     return info
@@ -69,7 +65,7 @@ def get_package_information(project_dir: Path) -> IgInfo:
 
 def publish(project_dir: Path, ig_registry_dir: Path):
     info = get_package_information(project_dir)
-    log.info(f"publishing {info.name} ({info.edition.package})")
+    log.info(f"publishing {info.title} ({info.package})")
 
     ######
     # Create directory for IG contents

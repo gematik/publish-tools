@@ -2,41 +2,50 @@ from datetime import date as datetime_date
 
 from pydantic import AliasChoices, AnyUrl, BaseModel, Field
 
+from .guide import Edition
 from .sushi_config import SushiConfigReleaseLabel
 
 
-class IgDef(BaseModel):
-    name: str
+class IgInfo(BaseModel):
+    title: str
     category: str
-    npm_name: str = Field(
-        serialization_alias="npm-name",
-        validation_alias=AliasChoices("npm-name", "npm_name"),
+    package_id: str = Field(
+        serialization_alias="packageId",
+        validation_alias=AliasChoices("packageId", "package_id"),
     )
-    description: str
+    introduction: str
     canonical: AnyUrl
     ci_build: str = Field(
         serialization_alias="ci-build",
         validation_alias=AliasChoices("ci-build", "ci_build"),
     )
-
-
-class Edition(BaseModel):
-    name: str
-    ig_version: str = Field(
-        serialization_alias="ig-version",
-        validation_alias=AliasChoices("ig-version", "ig_version"),
-    )
-    package: str
+    sequence: str
+    version: str
     fhir_version: list[str] = Field(
         serialization_alias="fhir-version",
         validation_alias=AliasChoices("fhir_version", "fhir-version"),
     )
-    url: AnyUrl
-    description: str
+    path: AnyUrl
+    desc: str
     date: datetime_date
-    status: SushiConfigReleaseLabel
+    release_label: SushiConfigReleaseLabel = Field(
+        serialization_alias="releaseLabel",
+        validation_alias=AliasChoices("releaseLabel", "release_label"),
+    )
 
+    @property
+    def package(self):
+        return f"{self.package_id}#{self.version}"
 
-class IgInfo(IgDef):
-    edition: Edition
     publisher: str
+
+    @property
+    def edition(self):
+        return Edition(
+            name=self.sequence,
+            ig_version=self.version,
+            package=self.package,
+            fhir_version=self.fhir_version,
+            url=self.path,
+            description=self.desc,
+        )
