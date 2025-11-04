@@ -1,47 +1,66 @@
 import json
 from pathlib import Path
 
+import yaml
+
 from . import log
-from .handlers import ig_history, ig_list, package_feed
-from .models.guide import Edition, IgInfo
+from .handlers import ig_history, ig_list, package_feed, package_list
+from .models.guide import Edition
+from .models.ig_info import IgInfo
+from .models.implementation_guide import ImplementationGuide
+from .models.publication_request import PublicationRequest
+from .models.sushi_config import SushiConfig
+
+PUB_REQ_FILE = "publication-request.json"
+IMP_GUIDE_GLOB = "ImplementationGuide*.json"
+SUSHI_CONFIG_FILE = "sushi-config.yaml"
 
 
 def get_package_information(project_dir: Path) -> IgInfo:
     output_dir = project_dir / "output"
 
-    log.info(f"get package information from {project_dir}")
-    ig_file = (
-        res[0]
-        if len(res := list(output_dir.glob("ImplementationGuide*.json"))) == 1
-        else None
-    )
-    if ig_file is None:
-        log.error("package not built")
-        raise Exception("package not built")
+    log.info(f"Get package information from {project_dir}")
+    if not (
+        imp_guide_file := (
+            res[0] if (res := list(output_dir.glob(IMP_GUIDE_GLOB))) else None
+        )
+    ):
+        log.error("Package not built")
+        raise Exception("Package not built")
 
-    pub_file = project_dir / "publication-request.json"
-    if pub_file is None:
-        log.error("publication request missing")
-        raise Exception("publication request missing")
+    if not (pub_req_file := project_dir / PUB_REQ_FILE):
+        log.error("Publication request missing")
+        raise Exception("Publication request missing")
 
-    ig_info = json.loads(ig_file.read_text(encoding="utf-8"))
-    pub_info = json.loads(pub_file.read_text(encoding="utf-8"))
+    if not (sushi_config_file := project_dir / SUSHI_CONFIG_FILE):
+        log.error("Sushi config missing")
+        raise Exception("Sushi config missing")
+
+    imp_guide_cont = json.loads(imp_guide_file.read_text("utf-8"))
+    pub_req_cont = json.loads(pub_req_file.read_text("utf-8"))
+    sushi_config_cont = yaml.safe_load(sushi_config_file.read_text("utf-8"))
+
+    imp_guide = ImplementationGuide.model_validate(imp_guide_cont)
+    pub_req = PublicationRequest.model_validate(pub_req_cont)
+    sushi_config = SushiConfig.model_validate(sushi_config_cont)
 
     info = IgInfo(
-        name=pub_info["title"],
-        category=pub_info["category"],
-        publisher=ig_info["publisher"],
-        npm_name=pub_info["package-id"],
-        description=pub_info["introduction"],
-        canonical=ig_info["url"].rsplit("/", 2)[0],
-        ci_build=pub_info.get("ci-build", ""),
+        name=pub_req.title,
+        category=pub_req.category,
+        publisher=imp_guide.publisher,
+        npm_name=imp_guide.package_id,
+        description=pub_req.introduction,
+        canonical=sushi_config.canonical,
+        ci_build=pub_req.ci_build,
         edition=Edition(
-            name=pub_info["sequence"],
-            ig_version=pub_info["version"],
-            package=f"{pub_info["package-id"]}#{pub_info["version"]}",
-            fhir_version=ig_info["fhirVersion"],
-            url=pub_info["path"],
-            description=pub_info["desc"],
+            name=pub_req.sequence,
+            ig_version=pub_req.version,
+            package=f"{pub_req.package_id}#{pub_req.version}",
+            fhir_version=imp_guide.fhir_version,
+            url=pub_req.path,
+            description=pub_req.desc,
+            date=imp_guide.date,
+            status=sushi_config.release_label,
         ),
     )
 
@@ -59,12 +78,16 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     pub_dir = project_dir / "publish"
     pub_dir.mkdir(parents=True, exist_ok=True)
 
-    pub_project = info.canonical.rsplit("/", 1)[1]
+    pub_project = info.canonical.path.rsplit("/", 1)[-1]
     pub_ig_dir = pub_dir / pub_project
+
+    # TODO: If project subdir exists, migrate data
 
     # Update history file
     history_file = ig_history.update(pub_ig_dir, info)
     ig_history.render(history_file)
+
+    package_list.update(pub_ig_dir, info)
 
     # Update ig list and package feed
     ig_list.update(info, ig_registry_dir)
