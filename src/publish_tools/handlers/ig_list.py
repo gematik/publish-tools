@@ -15,7 +15,7 @@ RENDER_FILE_NAME = "index.html"
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 
 
-def update(info: IgInfo, ig_registry_dir: Path):
+def update(ig_registry_dir: Path, info: IgInfo) -> IgList:
     """
     Update the IG List file
     """
@@ -50,17 +50,13 @@ def update(info: IgInfo, ig_registry_dir: Path):
         )
         ig_list.guides.append(guide)
 
-    file = write(ig_registry_dir, FILE_NAME, ig_list)
+    write(ig_registry_dir, FILE_NAME, ig_list)
     log.succ(f"updated ig list {ig_registry_dir/FILE_NAME}")
 
-    return file
+    return ig_list
 
 
-def render(registry_dir: Path):
-    file = registry_dir / FILE_NAME
-    content = file.read_text(encoding="utf-8")
-    ig_list = IgList.model_validate_json(content)
-
+def render(registry_dir: Path, ig_list: IgList):
     data = {"title": "IG List", "topics": {}}
     for guide in ig_list.guides:
         for edition in guide.editions:
@@ -85,8 +81,5 @@ def render(registry_dir: Path):
 
             data["topics"][topic][edition.name].append(g)
 
-    content = render_helper(data, "ig_list.jinja")
-
-    output = file.with_name(RENDER_FILE_NAME)
-    output.write_text(content, encoding="utf-8")
+    render_helper(registry_dir, RENDER_FILE_NAME, data, "ig_list.jinja")
     log.succ("rendered ig list")

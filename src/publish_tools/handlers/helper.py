@@ -15,13 +15,17 @@ REMOVE_TOKEN_REGEX = re.compile(
 )
 
 
-def render(data: dict, template_name: str) -> str:
+def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     env = Environment(loader=PackageLoader("publish_tools"))
     env.filters["sort_sequences"] = sort_sequences
     env.filters["safe_escape"] = safe_escape
 
     template = env.get_template(template_name)
-    return template.render(**data)
+    content = template.render(**data)
+
+    (file := dir / file_name).write_text(content, encoding="utf-8")
+
+    return file
 
 
 def sort_sequences(items: list[tuple[str, dict]], reverse=False):

@@ -4,6 +4,7 @@ from pathlib import Path
 from tzlocal import get_localzone
 
 from .. import log
+from ..models.guide import Guide
 from ..models.ig_info import IgInfo
 from ..models.package_feed import PackageDateTime, PackageFeed, PackageGuid, PackageItem
 from .helper import read_xml, write_xml
@@ -11,7 +12,7 @@ from .helper import read_xml, write_xml
 FILE_NAME = "package-feed.xml"
 
 
-def update(ig_dir: Path, info: IgInfo) -> Path:
+def update(ig_dir: Path, info: IgInfo) -> PackageFeed:
     now = PackageDateTime(date_time=datetime.now(tz=get_localzone()))
 
     pkg_info = PackageItem(
@@ -30,16 +31,16 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     for item in feed.channel.item:
         if item.guid.url == pkg_info.guid.url:
             log.info("no new package, did not update package feed")
-            return ig_dir / FILE_NAME
+            return feed
 
     feed.channel.last_build_date = now
     feed.channel.item.append(pkg_info)
 
-    file = write_xml(ig_dir, FILE_NAME, feed)
+    write_xml(ig_dir, FILE_NAME, feed)
     log.succ("updated package feed")
 
-    return file
+    return feed
 
 
-def from_history(history_file: Path):
+def from_history(guide: Guide) -> PackageFeed:
     pass
