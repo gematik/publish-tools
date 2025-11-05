@@ -8,6 +8,8 @@ from ..models.ig_list import IgList
 from .helper import render as render_helper
 
 FILE_NAME = "ig_list.json"
+RENDER_FILE_NAME = "index.html"
+
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 
 
@@ -92,6 +94,6 @@ def render(registry_dir: Path):
 
     content = render_helper(data, "ig_list.jinja")
 
-    output = file.with_name("index.html")
+    output = file.with_name(RENDER_FILE_NAME)
     output.write_text(content, encoding="utf-8")
     log.succ("rendered ig list")

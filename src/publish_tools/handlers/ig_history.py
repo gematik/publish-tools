@@ -6,6 +6,7 @@ from ..models.ig_info import IgInfo
 from .helper import render as render_helper
 
 FILE_NAME = "ig_history.json"
+RENDER_FILE_NAME = "index.html"
 
 
 def update(ig_dir: Path, info: IgInfo) -> Path:
@@ -58,6 +59,6 @@ def render(file: Path):
 
     content = render_helper(data, "history.jinja")
 
-    output = file.with_name("index.html")
+    output = file.with_name(RENDER_FILE_NAME)
     output.write_text(content, encoding="utf-8")
     log.succ("rendered ig history")
