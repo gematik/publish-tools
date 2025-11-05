@@ -5,7 +5,8 @@ from pathlib import Path
 import yaml
 
 from . import log
-from .handlers import ig_history, ig_list, package_feed, package_list
+from .handlers import helper, ig_history, ig_list, package_feed, package_list
+from .models.guide import Guide
 from .models.ig_info import IgInfo
 from .models.implementation_guide import ImplementationGuide
 from .models.publication_request import PublicationRequest
@@ -87,13 +88,18 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     del pub_ig_dir
 
     # Update history file
-    history_file = ig_history.update(pub_dir, info)
-    ig_history.render(history_file)
+    if history := helper.read(pub_dir, ig_history.FILE_NAME, Guide):
+        feed = package_feed.from_history(history)
+        helper.write(pub_dir, package_feed.FILE_NAME, feed)
+
+        # Remove history file after migration
+        (pub_dir / ig_history.FILE_NAME).unlink()
+
+    p_feed = package_feed.update(pub_dir, info)
+    ig_history.render(pub_dir, p_feed)
 
     package_list.update(pub_dir, info)
 
-    # Update ig list and package feed
-    ig_list.update(info, ig_registry_dir)
-    ig_list.render(ig_registry_dir)
-
-    package_feed.update(ig_registry_dir, info)
+    # Update ig list
+    i_list = ig_list.update(ig_registry_dir, info)
+    ig_list.render(ig_registry_dir, i_list)
