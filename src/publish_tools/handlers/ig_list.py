@@ -17,15 +17,8 @@ def update(info: IgInfo, ig_registry_dir: Path):
     """
     Update the IG List file
     """
-    ig_list = None
-
     ig_list_file = ig_registry_dir / FILE_NAME
-    if ig_list_file.exists():
-        # Read the existing data
-        content = ig_list_file.read_text(encoding="utf-8")
-        ig_list = IgList.model_validate_json(content)
-
-    else:
+    if (ig_list := read(ig_list_file)) is None:
         # Ensure the parent directory exists
         ig_list_file.parent.mkdir(parents=True, exist_ok=True)
         ig_list = IgList()
@@ -58,9 +51,21 @@ def update(info: IgInfo, ig_registry_dir: Path):
         )
         ig_list.guides.append(guide)
 
-    content = ig_list.model_dump_json(indent=4, by_alias=True)
-    ig_list_file.write_text(content, encoding="utf-8")
+    write(ig_list_file, ig_list)
     log.succ(f"updated ig list {ig_list_file}")
+
+
+def read(file: Path) -> IgList | None:
+    if not file.exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return IgList.model_validate_json(content)
+
+
+def write(file: Path, ig_list: IgList) -> None:
+    content = ig_list.model_dump_json(indent=4, by_alias=True)
+    file.write_text(content, encoding="utf-8")
 
 
 def render(registry_dir: Path):

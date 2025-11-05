@@ -26,13 +26,10 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     )
 
     file = ig_dir / FILE_NAME
-    if not file.exists():
+    if (feed := read(file)) is None:
         raise Exception("package feed missing, could not update")
 
-    content = file.read_text(encoding="utf-8")
-    feed = PackageFeed.from_xml(content)
-
-    for i, item in enumerate(feed.channel.item):
+    for item in feed.channel.item:
         if item.guid.url == pkg_info.guid.url:
             log.info("no new package, did not update package feed")
             return file
@@ -40,8 +37,20 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     feed.channel.last_build_date = now
     feed.channel.item.append(pkg_info)
 
+    write(file, feed)
+    log.succ("updated package feed")
+
+    return file
+
+
+def read(file: Path) -> PackageFeed | None:
+    if not file.exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return PackageFeed.from_xml(content)
+
+
+def write(file: Path, feed: PackageFeed) -> None:
     content = feed.to_xml(pretty_print=True, skip_empty=True)
     file.write_bytes(content)
-
-    log.succ("updated package feed")
-    return file

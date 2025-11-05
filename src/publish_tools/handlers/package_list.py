@@ -28,10 +28,7 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
     )
 
     file = ig_dir / FILE_NAME
-    if file.exists():
-        content = file.read_text(encoding="utf-8")
-        plist = PackageList.model_validate_json(content)
-
+    if plist := read(file):
         entry_found = False
         for i, pl_entry in enumerate(plist.list):
             if pl_entry.version == info.version:
@@ -81,9 +78,20 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
         for entry in plist.list:
             entry.current = entry.version == latest_version
 
-    content = plist.model_dump_json(indent=4, by_alias=True)
-    file.write_text(content, encoding="utf-8")
-
+    write(file, plist)
     log.succ("created/updated package list")
 
     return file
+
+
+def read(file: Path) -> PackageList | None:
+    if not file.exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return PackageList.model_validate_json(content)
+
+
+def write(file: Path, plist: PackageList) -> None:
+    content = plist.model_dump_json(indent=4, by_alias=True)
+    file.write_text(content, encoding="utf-8")
