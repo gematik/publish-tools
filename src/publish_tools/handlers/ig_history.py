@@ -3,18 +3,16 @@ from pathlib import Path
 from .. import log
 from ..models.guide import Guide
 from ..models.ig_info import IgInfo
+from .helper import read
 from .helper import render as render_helper
+from .helper import write
 
 FILE_NAME = "ig_history.json"
 RENDER_FILE_NAME = "index.html"
 
 
 def update(ig_dir: Path, info: IgInfo) -> Path:
-    ig_dir.mkdir(parents=True, exist_ok=True)
-
-    ig_history_file = ig_dir / FILE_NAME
-
-    if guide := read(ig_history_file):
+    if guide := read(ig_dir, FILE_NAME, Guide):
         edition_found = False
         for i, edition in enumerate(guide.editions):
             if edition.package == info.package:
@@ -33,23 +31,10 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
             }
         )
 
-    write(ig_history_file, guide)
+    file = write(ig_dir, FILE_NAME, guide)
     log.succ("created/updated history file")
 
-    return ig_history_file
-
-
-def read(file: Path) -> Guide | None:
-    if not file.exists():
-        return None
-
-    content = file.read_text(encoding="utf-8")
-    return Guide.model_validate_json(content)
-
-
-def write(file: Path, guide: Guide) -> None:
-    content = guide.model_dump_json(indent=4, by_alias=True)
-    file.write_text(content, encoding="utf-8")
+    return file
 
 
 def render(file: Path):

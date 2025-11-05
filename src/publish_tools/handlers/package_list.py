@@ -8,6 +8,7 @@ from ..models.package_list import (
     PackageListSpecificEntry,
 )
 from ..models.sushi_config import SushiConfigReleaseLabel
+from .helper import read, write
 
 FILE_NAME = "package_list.json"
 
@@ -27,8 +28,7 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
         fhir_version=info.fhir_version[0],
     )
 
-    file = ig_dir / FILE_NAME
-    if plist := read(file):
+    if plist := read(ig_dir, FILE_NAME, PackageList):
         entry_found = False
         for i, pl_entry in enumerate(plist.list):
             if pl_entry.version == info.version:
@@ -78,20 +78,7 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
         for entry in plist.list:
             entry.current = entry.version == latest_version
 
-    write(file, plist)
+    file = write(ig_dir, FILE_NAME, plist)
     log.succ("created/updated package list")
 
     return file
-
-
-def read(file: Path) -> PackageList | None:
-    if not file.exists():
-        return None
-
-    content = file.read_text(encoding="utf-8")
-    return PackageList.model_validate_json(content)
-
-
-def write(file: Path, plist: PackageList) -> None:
-    content = plist.model_dump_json(indent=4, by_alias=True)
-    file.write_text(content, encoding="utf-8")

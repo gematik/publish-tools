@@ -1,8 +1,12 @@
 import re
+from pathlib import Path
+from typing import Type, TypeVar
 
 from jinja2 import Environment, PackageLoader
 from jinja2.filters import do_mark_safe as safe
 from markupsafe import escape
+from pydantic import BaseModel
+from pydantic_xml import BaseXmlModel
 
 # Matches 'ballot' or 'Vorabveröffentlichung'
 # (with leading separators/spaces) anywhere
@@ -75,3 +79,43 @@ def safe_escape(text: str) -> str:
 
     # Mark this as safe so it will not be escaped later again
     return safe(text)
+
+
+T = TypeVar("T", bound=BaseModel)
+
+
+def read(dir: Path, file_name: str, type: Type[T]) -> T | None:
+    if not (file := (dir / file_name)).exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return type.model_validate_json(content)
+
+
+S = TypeVar("S", bound=BaseXmlModel)
+
+
+def read_xml(dir: Path, file_name: str, type: Type[S]) -> S | None:
+    if not (file := (dir / file_name)).exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return type.from_xml(content)
+
+
+def write(dir: Path, file_name: str, model: BaseModel) -> Path:
+    # Create directory if it does not exists
+    dir.mkdir(parents=True, exist_ok=True)
+
+    content = model.model_dump_json(indent=4, by_alias=True)
+    (file := dir / file_name).write_text(content, encoding="utf-8")
+    return file
+
+
+def write_xml(dir: Path, file_name: str, model: BaseXmlModel) -> Path:
+    # Create directory if it does not exists
+    dir.mkdir(parents=True, exist_ok=True)
+
+    content = model.to_xml(pretty_print=True, skip_empty=True)
+    (file := dir / file_name).write_bytes(content)
+    return file

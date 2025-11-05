@@ -5,7 +5,9 @@ from .. import log
 from ..models.guide import Guide
 from ..models.ig_info import IgInfo
 from ..models.ig_list import IgList
+from .helper import read
 from .helper import render as render_helper
+from .helper import write
 
 FILE_NAME = "ig_list.json"
 RENDER_FILE_NAME = "index.html"
@@ -17,10 +19,7 @@ def update(info: IgInfo, ig_registry_dir: Path):
     """
     Update the IG List file
     """
-    ig_list_file = ig_registry_dir / FILE_NAME
-    if (ig_list := read(ig_list_file)) is None:
-        # Ensure the parent directory exists
-        ig_list_file.parent.mkdir(parents=True, exist_ok=True)
+    if (ig_list := read(ig_registry_dir, FILE_NAME, IgList)) is None:
         ig_list = IgList()
 
     # Check guides if entry already exists
@@ -51,21 +50,10 @@ def update(info: IgInfo, ig_registry_dir: Path):
         )
         ig_list.guides.append(guide)
 
-    write(ig_list_file, ig_list)
-    log.succ(f"updated ig list {ig_list_file}")
+    file = write(ig_registry_dir, FILE_NAME, ig_list)
+    log.succ(f"updated ig list {ig_registry_dir/FILE_NAME}")
 
-
-def read(file: Path) -> IgList | None:
-    if not file.exists():
-        return None
-
-    content = file.read_text(encoding="utf-8")
-    return IgList.model_validate_json(content)
-
-
-def write(file: Path, ig_list: IgList) -> None:
-    content = ig_list.model_dump_json(indent=4, by_alias=True)
-    file.write_text(content, encoding="utf-8")
+    return file
 
 
 def render(registry_dir: Path):
