@@ -86,5 +86,13 @@ def update(ig_dir: Path, info: IgInfo) -> PackageList:
 
 
 def from_history(guide: Guide) -> PackageList:
-    feed = PackageList()
+    feed = PackageList(
+        package_id=guide.npm_name,
+        canonical=guide.canonical,
+        title=guide.name,
+        introduction=guide.description,
+    )
+
+    # TODO: fill actual list
+
     return feed

@@ -87,10 +87,10 @@ def publish(project_dir: Path, ig_registry_dir: Path):
 
     del pub_ig_dir
 
-    # Update history file
+    # Migrate history file to package list
     if history := helper.read(pub_dir, ig_history.FILE_NAME, Guide):
         plist = package_list.from_history(history)
-        helper.write(pub_dir, package_feed.FILE_NAME, plist)
+        helper.write(pub_dir, package_list.FILE_NAME, plist)
 
         # Remove history file after migration
         (pub_dir / ig_history.FILE_NAME).unlink()
@@ -101,4 +101,4 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     # Update ig list
     i_list = ig_list.update(ig_registry_dir, info)
     ig_list.render(ig_registry_dir, i_list)
-    package_feed.update(pub_dir, info)
+    package_feed.update(ig_registry_dir, info)

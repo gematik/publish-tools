@@ -39,15 +39,16 @@ def update(ig_dir: Path, info: IgInfo) -> Guide:
 
 
 def render(ig_dir: Path, plist: PackageList):
-    data = history.model_dump()
+    data = plist.model_dump()
 
     # Create sequences
     data["sequences"] = {}
     # Handle sequences
-    for edition in history.editions:
-        if edition.name not in data["sequences"]:
-            data["sequences"][edition.name] = []
-        data["sequences"][edition.name].append(edition)
+    for entry in plist.list:
+        sequence = getattr(entry, "sequence", "Current")
+        if sequence not in data["sequences"]:
+            data["sequences"][sequence] = []
+        data["sequences"][sequence].append(entry)
 
     render_helper(ig_dir, RENDER_FILE_NAME, data, "history.jinja")
     log.succ("rendered ig history")
