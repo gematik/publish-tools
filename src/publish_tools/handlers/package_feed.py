@@ -4,7 +4,6 @@ from pathlib import Path
 from tzlocal import get_localzone
 
 from .. import log
-from ..models.guide import Guide
 from ..models.ig_info import IgInfo
 from ..models.package_feed import PackageDateTime, PackageFeed, PackageGuid, PackageItem
 from .helper import read_xml, write_xml
@@ -40,7 +39,3 @@ def update(ig_dir: Path, info: IgInfo) -> PackageFeed:
     log.succ("updated package feed")
 
     return feed
-
-
-def from_history(guide: Guide) -> PackageFeed:
-    pass

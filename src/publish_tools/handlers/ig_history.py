@@ -3,7 +3,7 @@ from pathlib import Path
 from .. import log
 from ..models.guide import Guide
 from ..models.ig_info import IgInfo
-from ..models.package_feed import PackageFeed
+from ..models.package_list import PackageList
 from .helper import read
 from .helper import render as render_helper
 from .helper import write
@@ -38,7 +38,7 @@ def update(ig_dir: Path, info: IgInfo) -> Guide:
     return guide
 
 
-def render(ig_dir: Path, feed: PackageFeed):
+def render(ig_dir: Path, plist: PackageList):
     data = history.model_dump()
 
     # Create sequences

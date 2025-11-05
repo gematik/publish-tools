@@ -89,17 +89,16 @@ def publish(project_dir: Path, ig_registry_dir: Path):
 
     # Update history file
     if history := helper.read(pub_dir, ig_history.FILE_NAME, Guide):
-        feed = package_feed.from_history(history)
-        helper.write(pub_dir, package_feed.FILE_NAME, feed)
+        plist = package_list.from_history(history)
+        helper.write(pub_dir, package_feed.FILE_NAME, plist)
 
         # Remove history file after migration
         (pub_dir / ig_history.FILE_NAME).unlink()
 
-    p_feed = package_feed.update(pub_dir, info)
-    ig_history.render(pub_dir, p_feed)
-
-    package_list.update(pub_dir, info)
+    plist = package_list.update(pub_dir, info)
+    ig_history.render(pub_dir, plist)
 
     # Update ig list
     i_list = ig_list.update(ig_registry_dir, info)
     ig_list.render(ig_registry_dir, i_list)
+    package_feed.update(pub_dir, info)

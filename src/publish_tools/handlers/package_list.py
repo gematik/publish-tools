@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from .. import log
+from ..models.guide import Guide
 from ..models.ig_info import IgInfo
 from ..models.package_list import (
     PackageList,
@@ -15,7 +16,7 @@ FILE_NAME = "package_list.json"
 CI_VERSION_DESCRIPTION = "Continuous Integration Build (latest in version control)"
 
 
-def update(ig_dir: Path, info: IgInfo) -> Path:
+def update(ig_dir: Path, info: IgInfo) -> PackageList:
     ig_dir.mkdir(parents=True, exist_ok=True)
 
     entry = PackageListSpecificEntry(
@@ -78,7 +79,12 @@ def update(ig_dir: Path, info: IgInfo) -> Path:
         for entry in plist.list:
             entry.current = entry.version == latest_version
 
-    file = write(ig_dir, FILE_NAME, plist)
+    write(ig_dir, FILE_NAME, plist)
     log.succ("created/updated package list")
 
-    return file
+    return plist
+
+
+def from_history(guide: Guide) -> PackageList:
+    feed = PackageList()
+    return feed
