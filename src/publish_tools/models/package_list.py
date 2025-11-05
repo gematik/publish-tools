@@ -27,6 +27,7 @@ class PackageListSpecificEntry(PackageListSimpleEntry):
         serialization_alias="fhirversion",
         validation_alias=AliasChoices("fhirversion", "fhir_version"),
     )
+    status: SushiConfigReleaseLabel = SushiConfigReleaseLabel.RELEASE
     current: bool = False
 
 

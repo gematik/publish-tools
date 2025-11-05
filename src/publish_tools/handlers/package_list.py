@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from .. import log
@@ -93,6 +94,20 @@ def from_history(guide: Guide) -> PackageList:
         introduction=guide.description,
     )
 
-    # TODO: fill actual list
+    # Fill actual list
+    list_: list[PackageListCiBuildEntry | PackageListSpecificEntry] = []
+    for edition in guide.editions:
+        list_.append(
+            PackageListSpecificEntry(
+                version=edition.ig_version,
+                desc=edition.description,
+                path=edition.url,
+                date=date.today(),
+                sequence=edition.name,
+                fhir_version=edition.fhir_version[0],
+            )
+        )
+
+    feed.list = list_
 
     return feed
