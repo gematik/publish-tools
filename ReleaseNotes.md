@@ -4,7 +4,7 @@
 
 ## Release 0.2.1
 
-* Dumped version number for testing
+* Bumped version number for testing
 
 ## Release 0.2.0
 
