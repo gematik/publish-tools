@@ -1,0 +1,11 @@
+<img align="right" width="250" height="47" alt="gematik GmbH" src="img/Gematik_Logo_Flag_With_Background.png"/> <br/>
+
+# Release Notes FHIR Publish Tools
+
+## Release 0.2.1
+
+* Dumped version number for testing
+
+## Release 0.2.0
+
+* Add `version` command to get the tools version
