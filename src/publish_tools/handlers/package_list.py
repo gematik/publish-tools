@@ -1,5 +1,8 @@
+import json
 from datetime import date
 from pathlib import Path
+
+import requests
 
 from .. import log
 from ..models.guide import Guide
@@ -97,14 +100,68 @@ def from_history(guide: Guide) -> PackageList:
     # Fill actual list
     list_: list[PackageListCiBuildEntry | PackageListSpecificEntry] = []
     for edition in guide.editions:
+        # Try to get the original date from the IG resource from the server
+        resp = requests.get(
+            str(edition.url) + f"/ImplementationGuide-{guide.npm_name}.json"
+        )
+
+        ig_dict = json.loads(resp.text) if resp.status_code == 200 else {}
+        date_ = date.fromisoformat(d) if (d := ig_dict.get("date")) else date.today()
+
+        # Try to get the status from the online IG
+        # Get the list of extensions
+        exts = ig_dict.get("definition", {}).get("extension", [])
+
+        # Try to find the extension defining 'releaselabel'
+        release_ext = (
+            e[0]
+            if (
+                e := [
+                    ext
+                    for ext in exts
+                    if any(
+                        [
+                            extext.get("valueCode") == "releaselabel"
+                            for extext in ext.get("extension", [])
+                        ]
+                    )
+                ]
+            )
+            and len(e) == 1
+            else {}
+        )
+
+        # Get inside the extension the extension that defines the value
+        release_value = (
+            e[0]
+            if (
+                e := [
+                    ext
+                    for ext in release_ext.get("extension", [])
+                    if ext.get("url") == "value"
+                ]
+            )
+            and len(e) == 1
+            else {}
+        )
+
+        # If any was found extract the label otherwise use 'release' as default
+        status = (
+            SushiConfigReleaseLabel(v)
+            if (v := release_value.get("valueString"))
+            else SushiConfigReleaseLabel.RELEASE
+        )
+
+        # Append entry
         list_.append(
             PackageListSpecificEntry(
                 version=edition.ig_version,
                 desc=edition.description,
                 path=edition.url,
-                date=date.today(),
+                date=date_,
                 sequence=edition.name,
                 fhir_version=edition.fhir_version[0],
+                status=status,
             )
         )
 
