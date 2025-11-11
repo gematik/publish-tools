@@ -82,7 +82,8 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     # If project subdir exists, migrate data
     if pub_ig_dir.exists():
         for file in pub_ig_dir.iterdir():
-            shutil.move(file, pub_dir)
+            if file.suffix in [".json", ".html"]:
+                shutil.move(file, pub_dir)
         pub_ig_dir.rmdir()
 
     del pub_ig_dir

@@ -2,6 +2,10 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.1
+
+* Only migrate `.json` and `.html` files
+
 ## Release 0.3.0
 
 * Generate `package-list.json` that allows IG Publisher to create comparisons
