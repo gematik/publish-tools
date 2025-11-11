@@ -1,51 +1,65 @@
 import json
+import shutil
 from pathlib import Path
 
-from .ig_history import update_ig_history_file
-from .ig_list import update_ig_list
-from .log import log_error, log_info
-from .models import Edition, IgInfo
-from .package_feed import update_package_feed
-from .render import render_history, render_ig_list
+import yaml
+
+from . import log
+from .handlers import helper, ig_history, ig_list, package_feed, package_list
+from .models.guide import Guide
+from .models.ig_info import IgInfo
+from .models.implementation_guide import ImplementationGuide
+from .models.publication_request import PublicationRequest
+from .models.sushi_config import SushiConfig
+
+PUB_REQ_FILE = "publication-request.json"
+IMP_GUIDE_GLOB = "ImplementationGuide*.json"
+SUSHI_CONFIG_FILE = "sushi-config.yaml"
 
 
 def get_package_information(project_dir: Path) -> IgInfo:
     output_dir = project_dir / "output"
 
-    log_info(f"get package information from {project_dir}")
-    ig_file = (
-        res[0]
-        if len(res := list(output_dir.glob("ImplementationGuide*.json"))) == 1
-        else None
-    )
-    if ig_file is None:
-        log_error("package not built")
-        raise Exception("package not built")
+    log.info(f"Get package information from {project_dir}")
+    if not (
+        imp_guide_file := (
+            res[0] if (res := list(output_dir.glob(IMP_GUIDE_GLOB))) else None
+        )
+    ):
+        log.error("Package not built")
+        raise Exception("Package not built")
 
-    pub_file = project_dir / "publication-request.json"
-    if pub_file is None:
-        log_error("publication request missing")
-        raise Exception("publication request missing")
+    if not (pub_req_file := project_dir / PUB_REQ_FILE):
+        log.error("Publication request missing")
+        raise Exception("Publication request missing")
 
-    ig_info = json.loads(ig_file.read_text(encoding="utf-8"))
-    pub_info = json.loads(pub_file.read_text(encoding="utf-8"))
+    if not (sushi_config_file := project_dir / SUSHI_CONFIG_FILE):
+        log.error("Sushi config missing")
+        raise Exception("Sushi config missing")
+
+    imp_guide_cont = json.loads(imp_guide_file.read_text("utf-8"))
+    pub_req_cont = json.loads(pub_req_file.read_text("utf-8"))
+    sushi_config_cont = yaml.safe_load(sushi_config_file.read_text("utf-8"))
+
+    imp_guide = ImplementationGuide.model_validate(imp_guide_cont)
+    pub_req = PublicationRequest.model_validate(pub_req_cont)
+    sushi_config = SushiConfig.model_validate(sushi_config_cont)
 
     info = IgInfo(
-        name=pub_info["title"],
-        category=pub_info["category"],
-        publisher=ig_info["publisher"],
-        npm_name=pub_info["package-id"],
-        description=pub_info["introduction"],
-        canonical=ig_info["url"].rsplit("/", 2)[0],
-        ci_build=pub_info.get("ci-build", ""),
-        edition=Edition(
-            name=pub_info["sequence"],
-            ig_version=pub_info["version"],
-            package=f"{pub_info["package-id"]}#{pub_info["version"]}",
-            fhir_version=ig_info["fhirVersion"],
-            url=pub_info["path"],
-            description=pub_info["desc"],
-        ),
+        title=pub_req.title,
+        category=pub_req.category,
+        publisher=imp_guide.publisher,
+        package_id=imp_guide.package_id,
+        introduction=pub_req.introduction,
+        canonical=sushi_config.canonical,
+        ci_build=pub_req.ci_build,
+        sequence=pub_req.sequence,
+        version=pub_req.version,
+        fhir_version=imp_guide.fhir_version,
+        path=pub_req.path,
+        desc=pub_req.desc,
+        date=imp_guide.date,
+        release_label=sushi_config.release_label,
     )
 
     return info
@@ -53,7 +67,7 @@ def get_package_information(project_dir: Path) -> IgInfo:
 
 def publish(project_dir: Path, ig_registry_dir: Path):
     info = get_package_information(project_dir)
-    log_info(f"publishing {info.name} ({info.edition.package})")
+    log.info(f"publishing {info.title} ({info.package})")
 
     ######
     # Create directory for IG contents
@@ -62,50 +76,29 @@ def publish(project_dir: Path, ig_registry_dir: Path):
     pub_dir = project_dir / "publish"
     pub_dir.mkdir(parents=True, exist_ok=True)
 
-    # output_dir = project_dir / "output"
-
-    pub_project = info.canonical.rsplit("/", 1)[1]
+    pub_project = info.canonical.path.rsplit("/", 1)[-1]
     pub_ig_dir = pub_dir / pub_project
 
-    ###
-    # Do not create versioned copies of the generated IG
-    ###
+    # If project subdir exists, migrate data
+    if pub_ig_dir.exists():
+        for file in pub_ig_dir.iterdir():
+            shutil.move(file, pub_dir)
+        pub_ig_dir.rmdir()
 
-    # pub_ig_version_dir = pub_ig_dir / info.edition.ig_version
-    # pub_ig_version_dir.mkdir(parents=True, exist_ok=True)
+    del pub_ig_dir
 
-    # # Clear previous content
-    # if pub_ig_dir.exists():
-    #     shutil.rmtree(pub_ig_version_dir)
-    #     log_info("removed previous versioned IG")
+    # Migrate history file to package list
+    if history := helper.read(pub_dir, ig_history.FILE_NAME, Guide):
+        plist = package_list.from_history(history)
+        helper.write(pub_dir, package_list.FILE_NAME, plist)
 
-    # shutil.copytree(output_dir, pub_ig_version_dir)
-    # log_succ("created versioned IG")
+        # Remove history file after migration
+        (pub_dir / ig_history.FILE_NAME).unlink()
 
-    ######
-    # Create archive
-    ######
-    # archive_dir = pub_dir / "ig-build-zips"
-    # archive_dir.mkdir(parents=True, exist_ok=True)
+    plist = package_list.update(pub_dir, info)
+    ig_history.render(pub_dir, plist)
 
-    # archive = Path(
-    #     shutil.make_archive(
-    #         base_name=info.edition.package,
-    #         format="zip",
-    #         root_dir=pub_ig_version_dir.parent,
-    #         base_dir=pub_ig_version_dir.name,
-    #     )
-    # )
-
-    # shutil.move(archive, archive_dir / archive.name)
-    # log_succ("created IG archive")
-
-    # Update history file
-    history_file = update_ig_history_file(pub_ig_dir, info)
-    render_history(history_file)
-
-    # Update ig list and package feed
-    update_ig_list(info, ig_registry_dir)
-    render_ig_list(ig_registry_dir)
-
-    update_package_feed(ig_registry_dir, info)
+    # Update ig list
+    i_list = ig_list.update(ig_registry_dir, info)
+    ig_list.render(ig_registry_dir, i_list)
+    package_feed.update(ig_registry_dir, info)

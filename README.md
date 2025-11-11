@@ -18,40 +18,6 @@ A project directory is created containing a directory with the current version `
 
 ![IG History](./img/history.png)
 
-An archive of the current version is also created in `ig-build-zips/`.
-
-It can also update a list different IG in `ig_list.json` that has the format:
-
-```json
-{
-    "guides": [
-        {
-            "name": "<name>",
-            "category": "<category>",
-            "npm-name": "<package>",
-            "description": "<description>",
-            "canonical": "<canonical>",
-            "ci-build": "<ci-build>",
-            "editions": [
-                {
-                    "name": "<sequence-name>",
-                    "ig-version": "<version>",
-                    "package": "<package>#<version>",
-                    "fhir-version": [
-                        "<fhir-version>",
-                        // ...
-                    ],
-                    "url": "<url>",
-                    "description": "<edition description>"
-                },
-                // ...
-            ]
-        },
-        // ...
-    ]
-}
-```
-
 and can also render this into a HTML file `index.html`
 
 ![IG List](./img/ig_list.png)
@@ -69,10 +35,13 @@ The following comands are supported:
 
 Does the following:
 
-* Produces the IG in `<project name>/<version>/`
-* Creates or updates `ig_history.json` and `index.html` in `<project name>/`
-* Builds an archive of the current version in `ig-build-zips/`
-* Creates or updates `ig_list.json` at the provided location
+* Migrates older structure with `ig_history.json` to `package-list.json` and moves files from `publish/<project>/` to `publish/`
+* Creates or updates `package-list.json` and `index.html` in `publish/`
+* Creates or updates `package-feed.xml` and `index.html` in the IG Registry
+
+#### Migration Information
+
+To allow additional history information to be used for generating the history HTML file, include a `package-list*.json` file next to `package-list.json`. This can be useful to include an IG that may not be processable for IG comparison but should be included int the history page.
 
 ### Render IG List
 

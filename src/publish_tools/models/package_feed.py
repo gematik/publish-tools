@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import AliasChoices, BaseModel, Field
 from pydantic_xml import (
     BaseXmlModel,
     attr,
@@ -19,52 +18,6 @@ NS_DC = "http://purl.org/dc/elements/1.1/"
 NS_FHIR = "http://hl7.org/fhir/feed"
 
 
-class IgDef(BaseModel):
-    name: str
-    category: str
-    npm_name: str = Field(
-        serialization_alias="npm-name",
-        validation_alias=AliasChoices("npm-name", "npm_name"),
-    )
-    description: str
-    canonical: str
-    ci_build: str = Field(
-        serialization_alias="ci-build",
-        validation_alias=AliasChoices("ci-build", "ci_build"),
-    )
-
-
-class Edition(BaseModel):
-    name: str
-    ig_version: str = Field(
-        serialization_alias="ig-version",
-        validation_alias=AliasChoices("ig-version", "ig_version"),
-    )
-    package: str
-    fhir_version: list[str] = Field(
-        serialization_alias="fhir-version",
-        validation_alias=AliasChoices("fhir_version", "fhir-version"),
-    )
-    url: str
-    description: str
-
-
-class IgInfo(IgDef):
-    edition: Edition
-    publisher: str
-
-
-class Guide(IgDef):
-    editions: list[Edition]
-
-
-class IgList(BaseModel):
-    guides: list[Guide] = []
-
-
-######
-# Package RSS Feed
-######
 class PackageDateTime(BaseXmlModel):
     date_time: datetime
 

@@ -3,8 +3,8 @@ import importlib.metadata
 import os
 from pathlib import Path
 
+from .handlers import ig_list
 from .ig import publish
-from .render import render_ig_list
 
 
 def main():
@@ -43,7 +43,7 @@ def main():
         publish(args.project_dir, args.ig_registry)
 
     elif args.cmd == "render-list":
-        render_ig_list(args.ig_registry)
+        ig_list.render(args.ig_registry)
 
     elif args.cmd == "version":
         print(importlib.metadata.version(__package__))

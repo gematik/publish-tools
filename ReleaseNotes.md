@@ -2,9 +2,14 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.0
+
+* Generate `package-list.json` that allows IG Publisher to create comparisons
+* Switch from `ig_list.json` to `package-list.json` as history storage
+
 ## Release 0.2.1
 
-* Dumped version number for testing
+* Bumped version number for testing
 
 ## Release 0.2.0
 

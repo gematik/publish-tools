@@ -1,15 +1,12 @@
 import re
 from pathlib import Path
+from typing import Type, TypeVar
 
 from jinja2 import Environment, PackageLoader
 from jinja2.filters import do_mark_safe as safe
 from markupsafe import escape
-
-from .ig_list import FILE_NAME as IG_LIST_FILE_NAME
-from .log import log_succ
-from .models import Guide, IgList
-
-TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
+from pydantic import BaseModel
+from pydantic_xml import BaseXmlModel
 
 # Matches 'ballot' or 'Vorabveröffentlichung'
 # (with leading separators/spaces) anywhere
@@ -18,70 +15,17 @@ REMOVE_TOKEN_REGEX = re.compile(
 )
 
 
-def render_history(file: Path):
-    content = file.read_text(encoding="utf-8")
-    history = Guide.model_validate_json(content)
-
-    data = history.model_dump()
-
-    # Create sequences
-    data["sequences"] = {}
-    # Handle sequences
-    for edition in history.editions:
-        if edition.name not in data["sequences"]:
-            data["sequences"][edition.name] = []
-        data["sequences"][edition.name].append(edition)
-
-    content = _render(data, "history.jinja")
-
-    output = file.with_name("index.html")
-    output.write_text(content, encoding="utf-8")
-    log_succ("rendered ig history")
-
-
-def render_ig_list(registry_dir: Path):
-    file = registry_dir / IG_LIST_FILE_NAME
-    content = file.read_text(encoding="utf-8")
-    ig_list = IgList.model_validate_json(content)
-
-    data = {"title": "IG List", "topics": {}}
-    for guide in ig_list.guides:
-        for edition in guide.editions:
-            topic = (
-                match[1]
-                if (match := TOPIC_REGEX.match(edition.name)) is not None
-                else edition.name
-            )
-            if topic not in data["topics"]:
-                data["topics"][topic] = {}
-
-            if edition.name not in data["topics"][topic]:
-                data["topics"][topic][edition.name] = []
-
-            g = {
-                "name": guide.name,
-                "ig_version": edition.ig_version,
-                "fhir_version": edition.fhir_version,
-                "description": edition.description,
-                "url": edition.url,
-            }
-
-            data["topics"][topic][edition.name].append(g)
-
-    content = _render(data, "ig_list.jinja")
-
-    output = file.with_name("index.html")
-    output.write_text(content, encoding="utf-8")
-    log_succ("rendered ig list")
-
-
-def _render(data: dict, template_name: str) -> str:
+def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     env = Environment(loader=PackageLoader("publish_tools"))
     env.filters["sort_sequences"] = sort_sequences
     env.filters["safe_escape"] = safe_escape
 
     template = env.get_template(template_name)
-    return template.render(**data)
+    content = template.render(**data)
+
+    (file := dir / file_name).write_text(content, encoding="utf-8")
+
+    return file
 
 
 def sort_sequences(items: list[tuple[str, dict]], reverse=False):
@@ -139,3 +83,43 @@ def safe_escape(text: str) -> str:
 
     # Mark this as safe so it will not be escaped later again
     return safe(text)
+
+
+T = TypeVar("T", bound=BaseModel)
+
+
+def read(dir: Path, file_name: str, type: Type[T]) -> T | None:
+    if not (file := (dir / file_name)).exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return type.model_validate_json(content)
+
+
+S = TypeVar("S", bound=BaseXmlModel)
+
+
+def read_xml(dir: Path, file_name: str, type: Type[S]) -> S | None:
+    if not (file := (dir / file_name)).exists():
+        return None
+
+    content = file.read_text(encoding="utf-8")
+    return type.from_xml(content)
+
+
+def write(dir: Path, file_name: str, model: BaseModel) -> Path:
+    # Create directory if it does not exists
+    dir.mkdir(parents=True, exist_ok=True)
+
+    content = model.model_dump_json(indent=4, by_alias=True)
+    (file := dir / file_name).write_text(content, encoding="utf-8")
+    return file
+
+
+def write_xml(dir: Path, file_name: str, model: BaseXmlModel) -> Path:
+    # Create directory if it does not exists
+    dir.mkdir(parents=True, exist_ok=True)
+
+    content = model.to_xml(pretty_print=True, skip_empty=True)
+    (file := dir / file_name).write_bytes(content)
+    return file
