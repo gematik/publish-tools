@@ -35,7 +35,7 @@ class ImplementationGuide(BaseModel):
     experimental: bool
     date: datetime_date
     publisher: str
-    copyright: str
+    copyright: str | None = None
     package_id: str = Field(
         serialization_alias="packageId",
         validation_alias=AliasChoices("packageId", "package_id"),
