@@ -86,6 +86,20 @@ def update(ig_dir: Path, info: IgInfo) -> PackageList:
     write(ig_dir, FILE_NAME, plist)
     log.succ("created/updated package list")
 
+    # Read additional plist files that are read only
+    name_pattern = ig_dir / FILE_NAME
+
+    for file in name_pattern.parent.glob(name_pattern.stem + "*" + name_pattern.suffix):
+        # Skip the 'original' file as this was aleady handled
+        if file == name_pattern:
+            continue
+
+        plist_ = read(file.parent, file.name, PackageList)
+
+        if plist_ is not None:
+            # Add entries to list
+            plist.list.extend(plist_.list)
+
     return plist
 
 
