@@ -84,6 +84,8 @@ def publish(project_dir: Path, ig_registry_dir: Path):
         for file in pub_ig_dir.iterdir():
             if file.suffix in [".json", ".html"]:
                 shutil.move(file, pub_dir)
+            else:
+                file.unlink()
         pub_ig_dir.rmdir()
 
     del pub_ig_dir

@@ -2,6 +2,10 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.2
+
+* Remove not migrated files
+
 ## Release 0.3.1
 
 * Only migrate `.json` and `.html` files
