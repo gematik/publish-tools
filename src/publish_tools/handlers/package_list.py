@@ -15,7 +15,7 @@ from ..models.package_list import (
 from ..models.sushi_config import SushiConfigReleaseLabel
 from .helper import read, write
 
-FILE_NAME = "package_list.json"
+FILE_NAME = "package-list.json"
 
 CI_VERSION_DESCRIPTION = "Continuous Integration Build (latest in version control)"
 
