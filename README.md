@@ -1,4 +1,36 @@
+<img align="right" width="250" height="47" alt="gematik GmbH" src="img/Gematik_Logo_Flag.png"/> <br/>
+
 # FHIR Publish Tools
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#release-notes">Release Notes</a></li>
+      </ul>
+	</li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#publish-project">Publish Command</a></li>
+        <li><a href="#render-ig-list">Render IG List Command</a></li>
+      </ul>
+      <a href="#installation">Installation</a>
+      <ul>
+        <li><a href="#native">Native</a></li>
+        <li><a href="#docker">Docker Image</a></li>
+      </ul>
+    </li>
+    <li><a href="#security-policy">Security Policy</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ol>
+</details>
+
+## About The Project
 
 Tooling to support the publication process. The functionality is inspired by the *go-publish* workflow of *IG Publisher*.
 
@@ -22,7 +54,11 @@ and can also render this into a HTML file `index.html`
 
 ![IG List](./img/ig_list.png)
 
-## Comands
+### Release Notes
+
+See [ReleaseNotes](ReleaseNotes.md) for all information regarding the (newest) releases.
+
+## Getting Started
 
 The following comands are supported:
 
