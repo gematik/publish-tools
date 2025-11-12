@@ -39,10 +39,12 @@ def update(ig_dir: Path, info: IgInfo) -> Guide:
 
 
 def render(ig_dir: Path, plist: PackageList):
-    data = plist.model_dump()
+    data = {
+        "title": plist.title,
+        "introduction": plist.introduction,
+        "sequences": {},
+    }
 
-    # Create sequences
-    data["sequences"] = {}
     # Handle sequences
     for entry in plist.list:
         sequence = getattr(entry, "sequence", "Current")
