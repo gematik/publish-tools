@@ -2,6 +2,8 @@
 
 # Release Notes FHIR Publish Tools
 
+* Fix handling of publishing of non-first IGs
+
 ## Release 0.3.2
 
 * Remove not migrated files
