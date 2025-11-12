@@ -45,6 +45,11 @@ def update(ig_dir: Path, info: IgInfo) -> PackageList:
             plist.list.append(entry)
 
     else:
+        if info.title is None or info.introduction is None:
+            raise Exception(
+                "Trying to perform first publish from non-first publication request"
+            )
+
         plist = PackageList(
             package_id=info.package_id,
             canonical=info.canonical,
