@@ -55,6 +55,7 @@ and can also render this into a HTML file `index.html`
 ![IG List](./img/ig_list.png)
 
 ### Release Notes
+
 See [ReleaseNotes](ReleaseNotes.md) for all information regarding the (newest) releases.
 
 ## Getting Started
@@ -84,11 +85,9 @@ Renders the contents of `ig_list.json` into an HTML file. The IGs are grouped by
 
 ## Installation
 
-### Native
-
 The tooling can either be installed as a standalone function using *pipx* or as a Python module.
 
-#### pipx (preferred)
+### pipx (preferred)
 
 Install using pipx
 
@@ -102,7 +101,7 @@ Run from the command line
 publishtools ...
 ```
 
-#### Python Module
+### Python Module
 
 Check out this repository
 
