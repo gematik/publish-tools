@@ -5,7 +5,7 @@
 ## Release 0.3.2
 
 * Remove not migrated files
-- Added Docker Image
+* Added Docker Image
 
 ## Release 0.3.1
 
