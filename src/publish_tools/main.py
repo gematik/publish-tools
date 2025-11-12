@@ -3,50 +3,55 @@ import importlib.metadata
 import os
 from pathlib import Path
 
+from . import log
 from .handlers import ig_list
 from .ig import publish
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest="cmd")
+    try:
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers(dest="cmd")
 
-    publish_parser = subparsers.add_parser("publish", help="Publish project")
-    publish_parser.add_argument(
-        "--project-dir",
-        type=Path,
-        default=os.getcwd(),
-        help="Path of the project to publish",
-    )
-    publish_parser.add_argument(
-        "--ig-registry",
-        type=Path,
-        required=True,
-        help="Directory that contains the IG registry related files",
-    )
+        publish_parser = subparsers.add_parser("publish", help="Publish project")
+        publish_parser.add_argument(
+            "--project-dir",
+            type=Path,
+            default=os.getcwd(),
+            help="Path of the project to publish",
+        )
+        publish_parser.add_argument(
+            "--ig-registry",
+            type=Path,
+            required=True,
+            help="Directory that contains the IG registry related files",
+        )
 
-    render_list_parser = subparsers.add_parser(
-        "render-list", help="Render the IG list file"
-    )
-    render_list_parser.add_argument(
-        "--ig-registry",
-        type=Path,
-        required=True,
-        help="Directory that contains the IG registry related files",
-    )
+        render_list_parser = subparsers.add_parser(
+            "render-list", help="Render the IG list file"
+        )
+        render_list_parser.add_argument(
+            "--ig-registry",
+            type=Path,
+            required=True,
+            help="Directory that contains the IG registry related files",
+        )
 
-    subparsers.add_parser("version", help="Get the version")
+        subparsers.add_parser("version", help="Get the version")
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    if args.cmd == "publish":
-        publish(args.project_dir, args.ig_registry)
+        if args.cmd == "publish":
+            publish(args.project_dir, args.ig_registry)
 
-    elif args.cmd == "render-list":
-        ig_list.render(args.ig_registry)
+        elif args.cmd == "render-list":
+            ig_list.render(args.ig_registry)
 
-    elif args.cmd == "version":
-        print(importlib.metadata.version(__package__))
+        elif args.cmd == "version":
+            print(importlib.metadata.version(__package__))
 
-    else:
-        parser.print_help()
+        else:
+            parser.print_help()
+
+    except Exception as e:
+        log.error(str(e))
