@@ -56,7 +56,10 @@ def update(ig_registry_dir: Path, info: IgInfo) -> IgList:
     return ig_list
 
 
-def render(registry_dir: Path, ig_list: IgList):
+def render(registry_dir: Path, ig_list: IgList | None = None):
+    if ig_list is None and (ig_list := read(registry_dir, FILE_NAME, IgList)) is None:
+        ig_list = IgList()
+
     data = {"title": "IG List", "topics": {}}
     for guide in ig_list.guides:
         for edition in guide.editions:
