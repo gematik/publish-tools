@@ -7,13 +7,13 @@ from .sushi_config import SushiConfigReleaseLabel
 
 
 class IgInfo(BaseModel):
-    title: str
-    category: str
+    title: str | None = None
+    category: str | None = None
     package_id: str = Field(
         serialization_alias="packageId",
         validation_alias=AliasChoices("packageId", "package_id"),
     )
-    introduction: str
+    introduction: str | None = None
     canonical: AnyUrl
     ci_build: AnyUrl | None = Field(
         serialization_alias="ci-build",
