@@ -81,22 +81,27 @@ def publish(project_dir: Path, ig_registry_dir: Path):
 
     # If project subdir exists, migrate data
     if pub_ig_dir.exists():
+        log.info("migrating from old structure")
         for file in pub_ig_dir.iterdir():
             if file.suffix in [".json", ".html"]:
+                log.info("migrating {}".format(file))
                 shutil.move(file, pub_dir)
             else:
                 file.unlink()
         pub_ig_dir.rmdir()
+        log.succ("finished migration")
 
     del pub_ig_dir
 
     # Migrate history file to package list
     if history := helper.read(pub_dir, ig_history.FILE_NAME, Guide):
+        log.info("migrating from `ig_history.json` to `package_list.json`")
         plist = package_list.from_history(history)
         helper.write(pub_dir, package_list.FILE_NAME, plist)
 
         # Remove history file after migration
         (pub_dir / ig_history.FILE_NAME).unlink()
+        log.succ("finished migration")
 
     plist = package_list.update(pub_dir, info)
     ig_history.render(pub_dir, plist)
