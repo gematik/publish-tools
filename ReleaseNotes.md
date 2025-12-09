@@ -2,6 +2,14 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.4
+
+* Fix setting `current` in `package-list.json` if a CI build entry is already present
+* More verbose during mirgation
+* Remove optional field from ImplementationGuide model
+
+## Release 0.3.3
+
 * Fix handling of publishing of non-first IGs
 
 ## Release 0.3.2

@@ -32,7 +32,6 @@ class ImplementationGuide(BaseModel):
     name: str
     title: str
     status: ImplementationGuideStatus
-    experimental: bool
     date: datetime_date
     publisher: str
     copyright: str | None = None
