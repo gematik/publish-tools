@@ -60,33 +60,33 @@ def update(ig_dir: Path, info: IgInfo) -> PackageList:
         plist.list.append(entry)
 
     # Add CI build entry and set current
-    if info.ci_build:
-        ci_found = False
-        for entry in plist.list:
-            if entry.status == SushiConfigReleaseLabel.CI_BUILD:
-                entry.current = True
-                ci_found = True
+    ci_found = False
+    for entry in plist.list:
+        if entry.status == SushiConfigReleaseLabel.CI_BUILD:
+            entry.current = True
+            ci_found = True
 
-            # All others do not reflex the latest version
-            else:
-                entry.current = False
+        # All others do not reflex the latest version
+        else:
+            entry.current = False
 
-        # If ci build entry was not found, it needs to be added
-        if not ci_found:
+    # If ci build entry was not found, it needs to be added
+    if not ci_found:
+        if info.ci_build:
             ci_entry = PackageListCiBuildEntry(
                 desc=CI_VERSION_DESCRIPTION,
                 path=info.ci_build,
             )
             plist.list.append(ci_entry)
 
-    # If no ci_build, search for the latest release entry
-    else:
-        # Cannot contain CI Build entry
-        latest_version = sorted(plist.list, key=lambda x: x.date)[-1].version  # type: ignore
+        # If no ci_build, search for the latest release entry
+        else:
+            # Cannot contain CI Build entry
+            latest_version = sorted(plist.list, key=lambda x: x.date)[-1].version  # type: ignore
 
-        # Set the current flag
-        for entry in plist.list:
-            entry.current = entry.version == latest_version
+            # Set the current flag
+            for entry in plist.list:
+                entry.current = entry.version == latest_version
 
     write(ig_dir, FILE_NAME, plist)
     log.succ("created/updated package list")
