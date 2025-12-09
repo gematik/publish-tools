@@ -1,6 +1,7 @@
 import argparse
 import importlib.metadata
 import os
+import sys
 from pathlib import Path
 
 from . import log
@@ -55,3 +56,4 @@ def main():
 
     except Exception as e:
         log.error(str(e))
+        sys.exit(os.EX_DATAERR)
