@@ -2,6 +2,10 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.5
+
+* Set correct title in package feed; should be `<package>#<version>`
+
 ## Release 0.3.4
 
 * Fix setting `current` in `package-list.json` if a CI build entry is already present
