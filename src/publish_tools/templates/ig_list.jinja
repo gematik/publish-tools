@@ -14,7 +14,8 @@
         <table class="history-grid">
             <thead>
                 <tr>
-                    <th width="100px">IG</th>
+                    <th width="100px">IG Name</th>
+                    <th width="100px">IG Datum</th>
                     <th width="100px">Version</th>
                     <th>Beschreibung</th>
                 </tr>
@@ -27,6 +28,7 @@
                 {% for edition in editions | sort(attribute="ig_version", reverse=True) | sort(attribute="name") %}
                 <tr>
                     <td><a href="{{ edition.url }}">{{ edition.name | safe_escape }}</a></td>
+                    <td align="center">{{ edition.date | format_date }}</td>
                     <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
                     <td>{{ edition.description | safe_escape }}</td>
                 </tr>

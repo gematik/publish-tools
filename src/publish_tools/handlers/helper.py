@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Type, TypeVar
 
@@ -19,6 +20,7 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     env = Environment(loader=PackageLoader("publish_tools"))
     env.filters["sort_sequences"] = sort_sequences
     env.filters["safe_escape"] = safe_escape
+    env.filters["format_date"] = format_date
 
     template = env.get_template(template_name)
     content = template.render(**data)
@@ -83,6 +85,13 @@ def safe_escape(text: str) -> str:
 
     # Mark this as safe so it will not be escaped later again
     return safe(text)
+
+
+def format_date(value: str | datetime) -> str:
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value)
+
+    return value.strftime("%d.%m.%Y")
 
 
 T = TypeVar("T", bound=BaseModel)

@@ -1,5 +1,8 @@
+import json
 import re
 from pathlib import Path
+
+import requests
 
 from .. import log
 from ..models.guide import Guide
@@ -63,6 +66,31 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
     data = {"title": "IG List", "topics": {}}
     for guide in ig_list.guides:
         for edition in guide.editions:
+
+            if guide.npm_name:
+                pkg_name = guide.npm_name
+
+            else:
+                resp = requests.get(str(edition.url) + "/canonicals.json")
+
+                canonical_list = (
+                    json.loads(resp.text) if resp.status_code == 200 else []
+                )
+
+                # Get Implementation Guide entry
+                ig_entry = next(
+                    (e for e in canonical_list if e["type"] == "ImplementationGuide"),
+                    {},
+                )
+
+                pkg_name = ig_entry.get("id")
+
+            resp = requests.get(
+                str(edition.url) + "/ImplementationGuide-{}.json".format(pkg_name)
+            )
+
+            ig = json.loads(resp.text) if resp.status_code == 200 else {}
+
             topic = (
                 match[1]
                 if (match := TOPIC_REGEX.match(edition.name)) is not None
@@ -76,6 +104,7 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
 
             g = {
                 "name": guide.name,
+                "date": ig.get("date"),
                 "ig_version": edition.ig_version,
                 "fhir_version": edition.fhir_version,
                 "description": edition.description,
