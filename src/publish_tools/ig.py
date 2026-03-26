@@ -46,7 +46,7 @@ def get_package_information(project_dir: Path) -> IgInfo:
     sushi_config = SushiConfig.model_validate(sushi_config_cont)
 
     info = IgInfo(
-        title=pub_req.title,
+        title=imp_guide.name,
         category=pub_req.category,
         publisher=imp_guide.publisher,
         package_id=imp_guide.package_id,

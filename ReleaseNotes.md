@@ -2,6 +2,10 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.6
+
+* Fix templates not being added to the package
+
 ## Release 0.3.5
 
 * Set correct title in package feed; should be `<package>#<version>`

@@ -2,6 +2,7 @@ import argparse
 import importlib.metadata
 import os
 import sys
+import traceback
 from pathlib import Path
 
 from . import log
@@ -56,4 +57,5 @@ def main():
 
     except Exception as e:
         log.error(str(e))
+        traceback.print_exception(e)
         sys.exit(os.EX_DATAERR)

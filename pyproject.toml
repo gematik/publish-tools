@@ -1,6 +1,6 @@
 [project]
 name = "publish-tools"
-version = "0.3.5"
+version = "0.3.6"
 description = ""
 authors = [
     { name = "Alexander Essenwanger", email = "alexander.essenwanger@gematik.de" },
@@ -20,3 +20,13 @@ dependencies = [
 
 [project.scripts]
 publishtools = "publish_tools.main:main"
+
+[build-system]
+requires = ["uv_build>=0.11.1,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = true
+
+[tool.uv_build]
+package-data = { "publish_tools" = ["templates/**"] }
