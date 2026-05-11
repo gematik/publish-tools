@@ -2,6 +2,8 @@
 
 # FHIR Publish Tools
 
+[![Unit Tests](https://github.com/gematik/publish-tools/actions/workflows/unittests.yml/badge.svg)](https://github.com/gematik/publish-tools/actions/workflows/unittests.yml)
+
 <details>
   <summary>Table of Contents</summary>
   <ol>
