@@ -24,6 +24,107 @@ class TestUpdate(unittest.TestCase):
         file = Path(self.tmpdir.name) / ig_list.FILE_NAME
         helper.write(file.parent, file.name, content)
 
+    def test_file_not_exists(self):
+
+        input_data = {
+            "packageId": "org.example.ig",
+            "canonical": "http://example.org/ig",
+            "ci-build": "http://example.org/ig/build",
+            "sequence": "Test",
+            "version": "0.0.1",
+            "fhir_version": ["4.0.1"],
+            "path": "http://example.org/ig/0.0.1",
+            "desc": "Example IG",
+            "date": "2000-01-01",
+            "releaseLabel": "release",
+            "publisher": "ExamplePublisher",
+        }
+
+        wanted = {
+            "guides": [
+                {
+                    "name": "ExampleIG",
+                    "category": "example",
+                    "npm_name": "org.example.ig",
+                    "description": "Example IG",
+                    "canonical": "http://example.org/ig",
+                    "ci_build": "http://example.org/ig/build",
+                    "editions": [
+                        {
+                            "name": "Test",
+                            "ig_version": "0.0.1",
+                            "package": "org.example.ig#0.0.1",
+                            "fhir_version": ["4.0.1"],
+                            "url": "http://example.org/ig/0.0.1",
+                            "description": "Example IG",
+                        },
+                    ],
+                }
+            ]
+        }
+
+        try:
+            input = IgInfo.model_validate(input_data)
+
+            res = ig_list.update(Path(self.tmpdir.name), input)
+            res = json.loads(res.model_dump_json())
+            self.assertDictEqual(wanted, res)
+
+        except Exception as e:
+            self.fail(e)
+
+    def test_guide_not_exists(self):
+        setup_data = {"guides": []}
+
+        input_data = {
+            "packageId": "org.example.ig",
+            "canonical": "http://example.org/ig",
+            "ci-build": "http://example.org/ig/build",
+            "sequence": "Test",
+            "version": "0.0.1",
+            "fhir_version": ["4.0.1"],
+            "path": "http://example.org/ig/0.0.1",
+            "desc": "Example IG",
+            "date": "2000-01-01",
+            "releaseLabel": "release",
+            "publisher": "ExamplePublisher",
+        }
+
+        wanted = {
+            "guides": [
+                {
+                    "name": "ExampleIG",
+                    "category": "example",
+                    "npm_name": "org.example.ig",
+                    "description": "Example IG",
+                    "canonical": "http://example.org/ig",
+                    "ci_build": "http://example.org/ig/build",
+                    "editions": [
+                        {
+                            "name": "Test",
+                            "ig_version": "0.0.1",
+                            "package": "org.example.ig#0.0.1",
+                            "fhir_version": ["4.0.1"],
+                            "url": "http://example.org/ig/0.0.1",
+                            "description": "Example IG",
+                        },
+                    ],
+                }
+            ]
+        }
+
+        self.setupFile(setup_data)
+
+        try:
+            input = IgInfo.model_validate(input_data)
+
+            res = ig_list.update(Path(self.tmpdir.name), input)
+            res = json.loads(res.model_dump_json())
+            self.assertDictEqual(wanted, res)
+
+        except Exception as e:
+            self.fail(e)
+
     def test_edition_not_exists(self):
         setup_data = {
             "guides": [
