@@ -1,6 +1,6 @@
 [project]
 name = "publish-tools"
-version = "0.3.6"
+version = "0.3.7"
 description = ""
 authors = [
     { name = "Alexander Essenwanger", email = "alexander.essenwanger@gematik.de" },
@@ -32,6 +32,4 @@ package = true
 package-data = { "publish_tools" = ["templates/**"] }
 
 [dependency-groups]
-dev = [
-    "deepdiff>=9.0.0",
-]
+dev = ["deepdiff>=9.0.0"]
