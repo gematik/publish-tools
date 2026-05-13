@@ -3,6 +3,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from deepdiff import DeepDiff
+
 from publish_tools.handlers import ig_list, helper
 from publish_tools.models.ig_list import IgList
 from publish_tools.models.ig_info import IgInfo
@@ -68,7 +70,9 @@ class TestUpdate(unittest.TestCase):
 
             res = ig_list.update(Path(self.tmpdir.name), input)
             res = json.loads(res.model_dump_json())
-            self.assertDictEqual(wanted, res)
+
+            diff = DeepDiff(wanted, res)
+            self.assertDictEqual(diff, {})
 
         except Exception as e:
             self.fail(e)
@@ -120,7 +124,9 @@ class TestUpdate(unittest.TestCase):
 
             res = ig_list.update(Path(self.tmpdir.name), input)
             res = json.loads(res.model_dump_json())
-            self.assertDictEqual(wanted, res)
+
+            diff = DeepDiff(wanted, res)
+            self.assertDictEqual(diff, {})
 
         except Exception as e:
             self.fail(e)
@@ -184,7 +190,9 @@ class TestUpdate(unittest.TestCase):
 
             res = ig_list.update(Path(self.tmpdir.name), input)
             res = json.loads(res.model_dump_json())
-            self.assertDictEqual(wanted, res)
+
+            diff = DeepDiff(wanted, res)
+            self.assertDictEqual(diff, {})
 
         except Exception as e:
             self.fail(e)
@@ -257,7 +265,9 @@ class TestUpdate(unittest.TestCase):
 
             res = ig_list.update(Path(self.tmpdir.name), input)
             res = json.loads(res.model_dump_json())
-            self.assertDictEqual(wanted, res)
+
+            diff = DeepDiff(wanted, res)
+            self.assertDictEqual(diff, {})
 
         except Exception as e:
             self.fail(e)

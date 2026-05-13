@@ -30,3 +30,8 @@ package = true
 
 [tool.uv_build]
 package-data = { "publish_tools" = ["templates/**"] }
+
+[dependency-groups]
+dev = [
+    "deepdiff>=9.0.0",
+]
