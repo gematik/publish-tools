@@ -6,7 +6,7 @@ import requests
 
 from .. import log
 from ..models.guide import Guide
-from ..models.ig_info import IgInfo
+from ..models.ig_info import IgInfo, IgInfoFirst
 from ..models.package_list import (
     PackageList,
     PackageListCiBuildEntry,
@@ -20,7 +20,7 @@ FILE_NAME = "package-list.json"
 CI_VERSION_DESCRIPTION = "Continuous Integration Build (latest in version control)"
 
 
-def update(ig_dir: Path, info: IgInfo) -> PackageList:
+def update(ig_dir: Path, info: IgInfo | IgInfoFirst) -> PackageList:
     ig_dir.mkdir(parents=True, exist_ok=True)
 
     entry = PackageListSpecificEntry(
@@ -45,7 +45,7 @@ def update(ig_dir: Path, info: IgInfo) -> PackageList:
             plist.list.append(entry)
 
     else:
-        if info.title is None or info.introduction is None:
+        if not isinstance(info, IgInfoFirst):
             raise Exception(
                 "Trying to perform first publish from non-first publication request"
             )

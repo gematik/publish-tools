@@ -2,6 +2,10 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.3.7
+
+* Fix information handling for first IG publications
+
 ## Release 0.3.6
 
 * Fix templates not being added to the package

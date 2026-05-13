@@ -7,18 +7,12 @@ from .sushi_config import SushiConfigReleaseLabel
 
 
 class IgInfo(BaseModel):
-    title: str | None = None
-    category: str | None = None
+    title: str
     package_id: str = Field(
         serialization_alias="packageId",
         validation_alias=AliasChoices("packageId", "package_id"),
     )
-    introduction: str | None = None
     canonical: AnyUrl
-    ci_build: AnyUrl | None = Field(
-        serialization_alias="ci-build",
-        validation_alias=AliasChoices("ci-build", "ci_build"),
-    )
     sequence: str
     version: str
     fhir_version: list[str] = Field(
@@ -31,6 +25,11 @@ class IgInfo(BaseModel):
     release_label: SushiConfigReleaseLabel = Field(
         serialization_alias="releaseLabel",
         validation_alias=AliasChoices("releaseLabel", "release_label"),
+    )
+    ci_build: AnyUrl | None = Field(
+        serialization_alias="ci-build",
+        validation_alias=AliasChoices("ci-build", "ci_build"),
+        default=None,
     )
 
     @property
@@ -49,3 +48,12 @@ class IgInfo(BaseModel):
             url=self.path,
             description=self.desc,
         )
+
+
+class IgInfoFirst(IgInfo):
+    category: str
+    introduction: str
+    ci_build: AnyUrl = Field(
+        serialization_alias="ci-build",
+        validation_alias=AliasChoices("ci-build", "ci_build"),
+    )

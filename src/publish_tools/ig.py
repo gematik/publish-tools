@@ -2,14 +2,16 @@ import json
 import shutil
 from pathlib import Path
 
+from pydantic import ValidationError
+
 import yaml
 
 from . import log
 from .handlers import helper, ig_history, ig_list, package_feed, package_list
 from .models.guide import Guide
-from .models.ig_info import IgInfo
+from .models.ig_info import IgInfo, IgInfoFirst
 from .models.implementation_guide import ImplementationGuide
-from .models.publication_request import PublicationRequest
+from .models.publication_request import PublicationRequest, PublicationRequestFirst
 from .models.sushi_config import SushiConfig
 
 PUB_REQ_FILE = "publication-request.json"
@@ -17,7 +19,7 @@ IMP_GUIDE_GLOB = "ImplementationGuide*.json"
 SUSHI_CONFIG_FILE = "sushi-config.yaml"
 
 
-def get_package_information(project_dir: Path) -> IgInfo:
+def get_package_information(project_dir: Path) -> IgInfo | IgInfoFirst:
     output_dir = project_dir / "output"
 
     log.info(f"Get package information from {project_dir}")
@@ -41,26 +43,62 @@ def get_package_information(project_dir: Path) -> IgInfo:
     pub_req_cont = json.loads(pub_req_file.read_text("utf-8"))
     sushi_config_cont = yaml.safe_load(sushi_config_file.read_text("utf-8"))
 
-    imp_guide = ImplementationGuide.model_validate(imp_guide_cont)
-    pub_req = PublicationRequest.model_validate(pub_req_cont)
-    sushi_config = SushiConfig.model_validate(sushi_config_cont)
+    try:
+        imp_guide = ImplementationGuide.model_validate(imp_guide_cont)
 
-    info = IgInfo(
-        title=imp_guide.name,
-        category=pub_req.category,
-        publisher=imp_guide.publisher,
-        package_id=imp_guide.package_id,
-        introduction=pub_req.introduction,
-        canonical=sushi_config.canonical,
-        ci_build=pub_req.ci_build,
-        sequence=pub_req.sequence,
-        version=pub_req.version,
-        fhir_version=imp_guide.fhir_version,
-        path=pub_req.path,
-        desc=pub_req.desc,
-        date=imp_guide.date,
-        release_label=sushi_config.release_label,
-    )
+    except ValidationError as e:
+        raise Exception("Invalid Implementation Guide: {}", e)
+
+    try:
+        sushi_config = SushiConfig.model_validate(sushi_config_cont)
+
+    except ValidationError as e:
+        raise Exception("Invalid Sushi Config: {}", e)
+
+    if pub_req_cont.get("first"):
+        try:
+            pub_req = PublicationRequestFirst.model_validate(pub_req_cont)
+
+        except ValidationError as e:
+            raise Exception("Invalid Publication Request: {}".format(e))
+
+        info = IgInfoFirst(
+            title=imp_guide.title,
+            category=pub_req.category,
+            publisher=imp_guide.publisher,
+            package_id=imp_guide.package_id,
+            introduction=pub_req.introduction,
+            canonical=sushi_config.canonical,
+            ci_build=pub_req.ci_build,
+            sequence=pub_req.sequence,
+            version=pub_req.version,
+            fhir_version=imp_guide.fhir_version,
+            path=pub_req.path,
+            desc=pub_req.desc,
+            date=imp_guide.date,
+            release_label=sushi_config.release_label,
+        )
+
+    else:
+        try:
+            pub_req = PublicationRequest.model_validate(pub_req_cont)
+
+        except ValidationError as e:
+            raise Exception("Invalid Publication Request: {}", e)
+
+        info = IgInfo(
+            title=imp_guide.title,
+            publisher=imp_guide.publisher,
+            package_id=imp_guide.package_id,
+            canonical=sushi_config.canonical,
+            sequence=pub_req.sequence,
+            version=pub_req.version,
+            fhir_version=imp_guide.fhir_version,
+            path=pub_req.path,
+            desc=pub_req.desc,
+            date=imp_guide.date,
+            release_label=sushi_config.release_label,
+        )
 
     return info
 
