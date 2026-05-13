@@ -7,7 +7,7 @@ from deepdiff import DeepDiff
 
 from publish_tools.handlers import ig_list, helper
 from publish_tools.models.ig_list import IgList
-from publish_tools.models.ig_info import IgInfo
+from publish_tools.models.ig_info import IgInfo, IgInfoFirst
 
 
 class TestUpdate(unittest.TestCase):
@@ -88,10 +88,12 @@ class TestUpdate(unittest.TestCase):
             "version": "0.0.1",
             "fhir_version": ["4.0.1"],
             "path": "http://example.org/ig/0.0.1",
-            "desc": "Example IG",
+            "desc": "Example IG Release 0.0.1",
             "date": "2000-01-01",
             "releaseLabel": "release",
             "publisher": "ExamplePublisher",
+            "category": "example",
+            "introduction": "Example IG",
         }
 
         wanted = {
@@ -120,7 +122,7 @@ class TestUpdate(unittest.TestCase):
         self.setupFile(setup_data)
 
         try:
-            input = IgInfo.model_validate(input_data)
+            input = IgInfoFirst.model_validate(input_data)
 
             res = ig_list.update(Path(self.tmpdir.name), input)
             res = json.loads(res.model_dump_json())
@@ -130,6 +132,59 @@ class TestUpdate(unittest.TestCase):
 
         except Exception as e:
             self.fail(e)
+
+    def test_guide_not_exists_not_first(self):
+        setup_data = {"guides": []}
+
+        input_data = {
+            "packageId": "org.example.ig",
+            "canonical": "http://example.org/ig",
+            "ci-build": "http://example.org/ig/build",
+            "sequence": "Test",
+            "version": "0.0.1",
+            "fhir_version": ["4.0.1"],
+            "path": "http://example.org/ig/0.0.1",
+            "desc": "Example IG Release 0.0.1",
+            "date": "2000-01-01",
+            "releaseLabel": "release",
+            "publisher": "ExamplePublisher",
+        }
+
+        wanted = {
+            "guides": [
+                {
+                    "name": "ExampleIG",
+                    "category": "example",
+                    "npm_name": "org.example.ig",
+                    "description": "Example IG",
+                    "canonical": "http://example.org/ig",
+                    "ci_build": "http://example.org/ig/build",
+                    "editions": [
+                        {
+                            "name": "Test",
+                            "ig_version": "0.0.1",
+                            "package": "org.example.ig#0.0.1",
+                            "fhir_version": ["4.0.1"],
+                            "url": "http://example.org/ig/0.0.1",
+                            "description": "Example IG Release 0.0.1",
+                        },
+                    ],
+                }
+            ]
+        }
+
+        self.setupFile(setup_data)
+
+        try:
+            input = IgInfo.model_validate(input_data)
+
+            res = ig_list.update(Path(self.tmpdir.name), input)
+
+        except:
+            pass
+
+        else:
+            self.fail("Expected exception not raised")
 
     def test_edition_not_exists(self):
         setup_data = {
@@ -154,7 +209,7 @@ class TestUpdate(unittest.TestCase):
             "version": "0.0.1",
             "fhir_version": ["4.0.1"],
             "path": "http://example.org/ig/0.0.1",
-            "desc": "Example IG",
+            "desc": "Example IG Release 0.0.1",
             "date": "2000-01-01",
             "releaseLabel": "release",
             "publisher": "ExamplePublisher",
@@ -176,7 +231,7 @@ class TestUpdate(unittest.TestCase):
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
-                            "description": "Example IG",
+                            "description": "Example IG Release 0.0.1",
                         },
                     ],
                 }

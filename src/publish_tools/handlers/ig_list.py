@@ -3,7 +3,7 @@ from pathlib import Path
 
 from .. import log
 from ..models.guide import Guide
-from ..models.ig_info import IgInfo
+from ..models.ig_info import IgInfo, IgInfoFirst
 from ..models.ig_list import IgList
 from .helper import read
 from .helper import render as render_helper
@@ -15,7 +15,7 @@ RENDER_FILE_NAME = "index.html"
 TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 
 
-def update(ig_registry_dir: Path, info: IgInfo) -> IgList:
+def update(ig_registry_dir: Path, info: IgInfo | IgInfoFirst) -> IgList:
     """
     Update the IG List file
     """
@@ -42,6 +42,9 @@ def update(ig_registry_dir: Path, info: IgInfo) -> IgList:
 
     # If guide does not exists, add as new one
     if not guide_found:
+        if not isinstance(info, IgInfoFirst):
+            raise Exception("Guide does not exist but is not first release")
+
         guide = Guide.model_validate(
             {
                 "editions": [info.edition],
