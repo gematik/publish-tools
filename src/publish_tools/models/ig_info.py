@@ -8,17 +8,11 @@ from .sushi_config import SushiConfigReleaseLabel
 
 class IgInfo(BaseModel):
     title: str | None = None
-    category: str | None = None
     package_id: str = Field(
         serialization_alias="packageId",
         validation_alias=AliasChoices("packageId", "package_id"),
     )
-    introduction: str | None = None
     canonical: AnyUrl
-    ci_build: AnyUrl | None = Field(
-        serialization_alias="ci-build",
-        validation_alias=AliasChoices("ci-build", "ci_build"),
-    )
     sequence: str
     version: str
     fhir_version: list[str] = Field(
@@ -49,3 +43,12 @@ class IgInfo(BaseModel):
             url=self.path,
             description=self.desc,
         )
+
+
+class IgInfoFirst(IgInfo):
+    category: str
+    introduction: str
+    ci_build: AnyUrl = Field(
+        serialization_alias="ci-build",
+        validation_alias=AliasChoices("ci-build", "ci_build"),
+    )
