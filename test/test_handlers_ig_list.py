@@ -29,58 +29,7 @@ class TestUpdate(unittest.TestCase):
     def test_file_not_exists(self):
 
         input_data = {
-            "packageId": "org.example.ig",
-            "canonical": "http://example.org/ig",
-            "ci-build": "http://example.org/ig/build",
-            "sequence": "Test",
-            "version": "0.0.1",
-            "fhir_version": ["4.0.1"],
-            "path": "http://example.org/ig/0.0.1",
-            "desc": "Example IG",
-            "date": "2000-01-01",
-            "releaseLabel": "release",
-            "publisher": "ExamplePublisher",
-        }
-
-        wanted = {
-            "guides": [
-                {
-                    "name": "ExampleIG",
-                    "category": "example",
-                    "npm_name": "org.example.ig",
-                    "description": "Example IG",
-                    "canonical": "http://example.org/ig",
-                    "ci_build": "http://example.org/ig/build",
-                    "editions": [
-                        {
-                            "name": "Test",
-                            "ig_version": "0.0.1",
-                            "package": "org.example.ig#0.0.1",
-                            "fhir_version": ["4.0.1"],
-                            "url": "http://example.org/ig/0.0.1",
-                            "description": "Example IG",
-                        },
-                    ],
-                }
-            ]
-        }
-
-        try:
-            input = IgInfo.model_validate(input_data)
-
-            res = ig_list.update(Path(self.tmpdir.name), input)
-            res = json.loads(res.model_dump_json())
-
-            diff = DeepDiff(wanted, res)
-            self.assertDictEqual(diff, {})
-
-        except Exception as e:
-            self.fail(e)
-
-    def test_guide_not_exists(self):
-        setup_data = {"guides": []}
-
-        input_data = {
+            "title": "Example IG",
             "packageId": "org.example.ig",
             "canonical": "http://example.org/ig",
             "ci-build": "http://example.org/ig/build",
@@ -93,16 +42,16 @@ class TestUpdate(unittest.TestCase):
             "releaseLabel": "release",
             "publisher": "ExamplePublisher",
             "category": "example",
-            "introduction": "Example IG",
+            "introduction": "Example IG description",
         }
 
         wanted = {
             "guides": [
                 {
-                    "name": "ExampleIG",
+                    "name": "Example IG",
                     "category": "example",
                     "npm_name": "org.example.ig",
-                    "description": "Example IG",
+                    "description": "Example IG description",
                     "canonical": "http://example.org/ig",
                     "ci_build": "http://example.org/ig/build",
                     "editions": [
@@ -112,7 +61,63 @@ class TestUpdate(unittest.TestCase):
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
-                            "description": "Example IG",
+                            "description": "Example IG Release 0.0.1",
+                        },
+                    ],
+                }
+            ]
+        }
+
+        try:
+            input = IgInfoFirst.model_validate(input_data)
+
+            res = ig_list.update(Path(self.tmpdir.name), input)
+            res = json.loads(res.model_dump_json())
+
+            diff = DeepDiff(wanted, res)
+            self.maxDiff = None
+            self.assertDictEqual(diff, {})
+
+        except Exception as e:
+            self.fail(e)
+
+    def test_guide_not_exists(self):
+        setup_data = {"guides": []}
+
+        input_data = {
+            "title": "Example IG",
+            "packageId": "org.example.ig",
+            "canonical": "http://example.org/ig",
+            "ci-build": "http://example.org/ig/build",
+            "sequence": "Test",
+            "version": "0.0.1",
+            "fhir_version": ["4.0.1"],
+            "path": "http://example.org/ig/0.0.1",
+            "desc": "Example IG Release 0.0.1",
+            "date": "2000-01-01",
+            "releaseLabel": "release",
+            "publisher": "ExamplePublisher",
+            "category": "example",
+            "introduction": "Example IG description",
+        }
+
+        wanted = {
+            "guides": [
+                {
+                    "name": "Example IG",
+                    "category": "example",
+                    "npm_name": "org.example.ig",
+                    "description": "Example IG description",
+                    "canonical": "http://example.org/ig",
+                    "ci_build": "http://example.org/ig/build",
+                    "editions": [
+                        {
+                            "name": "Test",
+                            "ig_version": "0.0.1",
+                            "package": "org.example.ig#0.0.1",
+                            "fhir_version": ["4.0.1"],
+                            "url": "http://example.org/ig/0.0.1",
+                            "description": "Example IG Release 0.0.1",
                         },
                     ],
                 }
@@ -128,6 +133,7 @@ class TestUpdate(unittest.TestCase):
             res = json.loads(res.model_dump_json())
 
             diff = DeepDiff(wanted, res)
+            self.maxDiff = None
             self.assertDictEqual(diff, {})
 
         except Exception as e:
@@ -202,6 +208,7 @@ class TestUpdate(unittest.TestCase):
         }
 
         input_data = {
+            "title": "Example IG",
             "packageId": "org.example.ig",
             "canonical": "http://example.org/ig",
             "ci-build": "http://example.org/ig/build",
@@ -247,6 +254,7 @@ class TestUpdate(unittest.TestCase):
             res = json.loads(res.model_dump_json())
 
             diff = DeepDiff(wanted, res)
+            self.maxDiff = None
             self.assertDictEqual(diff, {})
 
         except Exception as e:
@@ -277,6 +285,7 @@ class TestUpdate(unittest.TestCase):
         }
 
         input_data = {
+            "title": "Example IG",
             "packageId": "org.example.ig",
             "canonical": "http://example.org/ig",
             "ci-build": "http://example.org/ig/build",
@@ -322,6 +331,7 @@ class TestUpdate(unittest.TestCase):
             res = json.loads(res.model_dump_json())
 
             diff = DeepDiff(wanted, res)
+            self.maxDiff = None
             self.assertDictEqual(diff, {})
 
         except Exception as e:

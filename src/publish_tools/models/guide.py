@@ -25,7 +25,7 @@ class Guide(BaseModel):
     )
     description: str
     canonical: AnyUrl
-    ci_build: str = Field(
+    ci_build: AnyUrl = Field(
         serialization_alias="ci-build",
         validation_alias=AliasChoices("ci-build", "ci_build"),
     )

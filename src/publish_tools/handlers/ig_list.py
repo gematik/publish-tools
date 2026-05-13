@@ -45,11 +45,14 @@ def update(ig_registry_dir: Path, info: IgInfo | IgInfoFirst) -> IgList:
         if not isinstance(info, IgInfoFirst):
             raise Exception("Guide does not exist but is not first release")
 
-        guide = Guide.model_validate(
-            {
-                "editions": [info.edition],
-                **info.model_dump(),
-            }
+        guide = Guide(
+            name=info.title,
+            category=info.category,
+            npm_name=info.package_id,
+            description=info.introduction,
+            canonical=info.canonical,
+            ci_build=info.ci_build,
+            editions=[info.edition],
         )
         ig_list.guides.append(guide)
 

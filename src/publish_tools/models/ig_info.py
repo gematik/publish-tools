@@ -7,7 +7,7 @@ from .sushi_config import SushiConfigReleaseLabel
 
 
 class IgInfo(BaseModel):
-    title: str | None = None
+    title: str
     package_id: str = Field(
         serialization_alias="packageId",
         validation_alias=AliasChoices("packageId", "package_id"),

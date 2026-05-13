@@ -63,7 +63,7 @@ def get_package_information(project_dir: Path) -> IgInfo | IgInfoFirst:
             raise Exception("Invalid Publication Request: {}".format(e))
 
         info = IgInfoFirst(
-            title=imp_guide.name,
+            title=imp_guide.title,
             category=pub_req.category,
             publisher=imp_guide.publisher,
             package_id=imp_guide.package_id,
@@ -87,7 +87,7 @@ def get_package_information(project_dir: Path) -> IgInfo | IgInfoFirst:
             raise Exception("Invalid Publication Request: {}", e)
 
         info = IgInfo(
-            title=imp_guide.name,
+            title=imp_guide.title,
             publisher=imp_guide.publisher,
             package_id=imp_guide.package_id,
             canonical=sushi_config.canonical,

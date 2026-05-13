@@ -125,6 +125,7 @@ class TestGetPackageInformation(unittest.TestCase):
             self.assertIsInstance(res, IgInfoFirst)
             res = json.loads(res.model_dump_json(exclude_none=True))
 
+            self.maxDiff = None
             self.assertDictEqual(wanted, res)
 
         except:
@@ -182,6 +183,7 @@ class TestGetPackageInformation(unittest.TestCase):
             self.assertIsInstance(res, IgInfoFirst)
             res = json.loads(res.model_dump_json(exclude_none=True))
 
+            self.maxDiff = None
             self.assertDictEqual(wanted, res)
 
         except:
@@ -240,6 +242,7 @@ class TestGetPackageInformation(unittest.TestCase):
             self.assertIsInstance(res, IgInfoFirst)
             res = json.loads(res.model_dump_json(exclude_none=True))
 
+            self.maxDiff = None
             self.assertDictEqual(wanted, res)
 
         except:
@@ -307,6 +310,7 @@ class TestGetPackageInformation(unittest.TestCase):
             self.assertIsInstance(res, IgInfoFirst)
             res = json.loads(res.model_dump_json(exclude_none=True))
 
+            self.maxDiff = None
             self.assertDictEqual(wanted, res)
 
         except Exception as e:
@@ -363,6 +367,7 @@ class TestGetPackageInformation(unittest.TestCase):
             self.assertIsInstance(res, IgInfo)
             res = json.loads(res.model_dump_json(exclude_none=True))
 
+            self.maxDiff = None
             self.assertDictEqual(wanted, res)
 
         except Exception as e:
