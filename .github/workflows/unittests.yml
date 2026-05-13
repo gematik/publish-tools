@@ -22,7 +22,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install package
-        run: pip install .
+        run: pip install --group dev .
 
       - name: Run tests
         run: python -m unittest discover -v -s ./test
