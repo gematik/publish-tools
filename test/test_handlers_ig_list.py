@@ -26,6 +26,41 @@ class TestUpdate(unittest.TestCase):
         file = Path(self.tmpdir.name) / ig_list.FILE_NAME
         helper.write(file.parent, file.name, content)
 
+    def process(
+        self,
+        input_data: dict,
+        wanted: dict | None = None,
+        setup_data: dict | None = None,
+        first: bool = False,
+    ):
+
+        if setup_data:
+            self.setupFile(setup_data)
+
+        try:
+            if first:
+                input = IgInfoFirst.model_validate(input_data)
+
+            else:
+                input = IgInfo.model_validate(input_data)
+
+            res = ig_list.update(Path(self.tmpdir.name), input)
+
+            if wanted:
+                res = json.loads(res.model_dump_json())
+
+                diff = DeepDiff(wanted, res)
+                self.maxDiff = None
+                self.assertDictEqual(diff, {})
+
+        except Exception as e:
+            if wanted:
+                self.fail(e)
+
+        else:
+            if not wanted:
+                self.fail("Expected Exception not raised")
+
     def test_file_not_exists(self):
 
         input_data = {
@@ -68,18 +103,7 @@ class TestUpdate(unittest.TestCase):
             ]
         }
 
-        try:
-            input = IgInfoFirst.model_validate(input_data)
-
-            res = ig_list.update(Path(self.tmpdir.name), input)
-            res = json.loads(res.model_dump_json())
-
-            diff = DeepDiff(wanted, res)
-            self.maxDiff = None
-            self.assertDictEqual(diff, {})
-
-        except Exception as e:
-            self.fail(e)
+        self.process(input_data=input_data, wanted=wanted, first=True)
 
     def test_guide_not_exists(self):
         setup_data = {"guides": []}
@@ -124,20 +148,9 @@ class TestUpdate(unittest.TestCase):
             ]
         }
 
-        self.setupFile(setup_data)
-
-        try:
-            input = IgInfoFirst.model_validate(input_data)
-
-            res = ig_list.update(Path(self.tmpdir.name), input)
-            res = json.loads(res.model_dump_json())
-
-            diff = DeepDiff(wanted, res)
-            self.maxDiff = None
-            self.assertDictEqual(diff, {})
-
-        except Exception as e:
-            self.fail(e)
+        self.process(
+            setup_data=setup_data, input_data=input_data, wanted=wanted, first=True
+        )
 
     def test_guide_not_exists_not_first(self):
         setup_data = {"guides": []}
@@ -179,18 +192,7 @@ class TestUpdate(unittest.TestCase):
             ]
         }
 
-        self.setupFile(setup_data)
-
-        try:
-            input = IgInfo.model_validate(input_data)
-
-            res = ig_list.update(Path(self.tmpdir.name), input)
-
-        except:
-            pass
-
-        else:
-            self.fail("Expected exception not raised")
+        self.process(setup_data=setup_data, input_data=input_data)
 
     def test_edition_not_exists(self):
         setup_data = {
@@ -245,20 +247,7 @@ class TestUpdate(unittest.TestCase):
             ]
         }
 
-        self.setupFile(setup_data)
-
-        try:
-            input = IgInfo.model_validate(input_data)
-
-            res = ig_list.update(Path(self.tmpdir.name), input)
-            res = json.loads(res.model_dump_json())
-
-            diff = DeepDiff(wanted, res)
-            self.maxDiff = None
-            self.assertDictEqual(diff, {})
-
-        except Exception as e:
-            self.fail(e)
+        self.process(setup_data=setup_data, input_data=input_data, wanted=wanted)
 
     def test_edition_exists(self):
         setup_data = {
@@ -322,17 +311,4 @@ class TestUpdate(unittest.TestCase):
             ]
         }
 
-        self.setupFile(setup_data)
-
-        try:
-            input = IgInfo.model_validate(input_data)
-
-            res = ig_list.update(Path(self.tmpdir.name), input)
-            res = json.loads(res.model_dump_json())
-
-            diff = DeepDiff(wanted, res)
-            self.maxDiff = None
-            self.assertDictEqual(diff, {})
-
-        except Exception as e:
-            self.fail(e)
+        self.process(setup_data=setup_data, input_data=input_data, wanted=wanted)

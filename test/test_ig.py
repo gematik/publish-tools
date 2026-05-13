@@ -37,47 +37,48 @@ class TestGetPackageInformation(unittest.TestCase):
             sushi_file.parent.mkdir(parents=True, exist_ok=True)
             sushi_file.write_text(json.dumps(sushi), "utf-8")
 
-    def test_imp_guide_missing(self):
-        input_data = {"imp_guide": None, "pub_req": {}, "sushi": {}}
-        self.setupFiles(**input_data)
+    def process(
+        self, setup_data: dict, wanted: dict | None = None, first: bool = False
+    ):
+        self.setupFiles(**setup_data)
 
         try:
-            ig.get_package_information(Path(self.tmpdir.name))
+            res = ig.get_package_information(Path(self.tmpdir.name))
 
-        except:
-            pass
+            if wanted:
+                if first:
+                    self.assertIsInstance(res, IgInfoFirst)
+
+                else:
+                    self.assertIsInstance(res, IgInfo)
+
+                res = json.loads(res.model_dump_json(exclude_none=True))
+
+                self.maxDiff = None
+                self.assertDictEqual(wanted, res)
+
+        except Exception as e:
+            if wanted:
+                self.fail(e)
 
         else:
-            self.fail("Expected error not raised")
+            if not wanted:
+                self.fail("Expected Exception not raised")
+
+    def test_imp_guide_missing(self):
+        setup_data = {"imp_guide": None, "pub_req": {}, "sushi": {}}
+        self.process(setup_data=setup_data)
 
     def test_pub_req_missing(self):
-        input_data = {"imp_guide": {}, "pub_req": None, "sushi": {}}
-        self.setupFiles(**input_data)
-
-        try:
-            ig.get_package_information(Path(self.tmpdir.name))
-
-        except:
-            pass
-
-        else:
-            self.fail("Expected error not raised")
+        setup_data = {"imp_guide": {}, "pub_req": None, "sushi": {}}
+        self.process(setup_data=setup_data)
 
     def test_sushi_missing(self):
-        input_data = {"imp_guide": {}, "pub_req": {}, "sushi": None}
-        self.setupFiles(**input_data)
-
-        try:
-            ig.get_package_information(Path(self.tmpdir.name))
-
-        except:
-            pass
-
-        else:
-            self.fail("Expected error not raised")
+        setup_data = {"imp_guide": {}, "pub_req": {}, "sushi": None}
+        self.process(setup_data=setup_data)
 
     def test_entry_in_imp_guide_missing(self):
-        input_data = {
+        setup_data = {
             "imp_guide": {
                 "url": "http://example.org/ig/ImplementationGuide/org.example.ig",
                 "version": "0.0.1",
@@ -104,38 +105,10 @@ class TestGetPackageInformation(unittest.TestCase):
             "sushi": {"canonical": "http://example.org/ig", "releaseLabel": "draft"},
         }
 
-        wanted = {
-            "title": "ImplementationGuide-org.example.ig",
-            "package_id": "org.example.ig",
-            "canonical": "http://example.org/ig",
-            "sequence": "STU3",
-            "version": "0.0.1",
-            "fhir_version": ["4.0.1"],
-            "path": "http://example.org/ig/0.0.1",
-            "desc": "Example IG",
-            "date": "2020-01-01",
-            "release_label": "draft",
-            "publisher": "Example Publisher",
-        }
-
-        self.setupFiles(**input_data)
-
-        try:
-            res = ig.get_package_information(Path(self.tmpdir.name))
-            self.assertIsInstance(res, IgInfoFirst)
-            res = json.loads(res.model_dump_json(exclude_none=True))
-
-            self.maxDiff = None
-            self.assertDictEqual(wanted, res)
-
-        except:
-            pass
-
-        else:
-            self.fail("Expected error not raised")
+        self.process(setup_data=setup_data)
 
     def test_entry_in_pub_req_missing(self):
-        input_data = {
+        setup_data = {
             "imp_guide": {
                 "id": "org.example.ig",
                 "url": "http://example.org/ig/ImplementationGuide/org.example.ig",
@@ -162,38 +135,10 @@ class TestGetPackageInformation(unittest.TestCase):
             "sushi": {"canonical": "http://example.org/ig", "releaseLabel": "draft"},
         }
 
-        wanted = {
-            "title": "ImplementationGuide-org.example.ig",
-            "package_id": "org.example.ig",
-            "canonical": "http://example.org/ig",
-            "sequence": "STU3",
-            "version": "0.0.1",
-            "fhir_version": ["4.0.1"],
-            "path": "http://example.org/ig/0.0.1",
-            "desc": "Example IG",
-            "date": "2020-01-01",
-            "release_label": "draft",
-            "publisher": "Example Publisher",
-        }
-
-        self.setupFiles(**input_data)
-
-        try:
-            res = ig.get_package_information(Path(self.tmpdir.name))
-            self.assertIsInstance(res, IgInfoFirst)
-            res = json.loads(res.model_dump_json(exclude_none=True))
-
-            self.maxDiff = None
-            self.assertDictEqual(wanted, res)
-
-        except:
-            pass
-
-        else:
-            self.fail("Expected error not raised")
+        self.process(setup_data=setup_data)
 
     def test_entry_in_sushi_missing(self):
-        input_data = {
+        setup_data = {
             "imp_guide": {
                 "id": "org.example.ig",
                 "url": "http://example.org/ig/ImplementationGuide/org.example.ig",
@@ -221,38 +166,10 @@ class TestGetPackageInformation(unittest.TestCase):
             "sushi": {"releaseLabel": "draft"},
         }
 
-        wanted = {
-            "title": "ImplementationGuide-org.example.ig",
-            "package_id": "org.example.ig",
-            "canonical": "http://example.org/ig",
-            "sequence": "STU3",
-            "version": "0.0.1",
-            "fhir_version": ["4.0.1"],
-            "path": "http://example.org/ig/0.0.1",
-            "desc": "Example IG",
-            "date": "2020-01-01",
-            "release_label": "draft",
-            "publisher": "Example Publisher",
-        }
-
-        self.setupFiles(**input_data)
-
-        try:
-            res = ig.get_package_information(Path(self.tmpdir.name))
-            self.assertIsInstance(res, IgInfoFirst)
-            res = json.loads(res.model_dump_json(exclude_none=True))
-
-            self.maxDiff = None
-            self.assertDictEqual(wanted, res)
-
-        except:
-            pass
-
-        else:
-            self.fail("Expected error not raised")
+        self.process(setup_data=setup_data)
 
     def test_first_release(self):
-        input_data = {
+        setup_data = {
             "imp_guide": {
                 "id": "org.example.ig",
                 "url": "http://example.org/ig/ImplementationGuide/org.example.ig",
@@ -287,7 +204,7 @@ class TestGetPackageInformation(unittest.TestCase):
         }
 
         wanted = {
-            "title": "ImplementationGuide-org.example.ig",
+            "title": "Example IG",
             "package_id": "org.example.ig",
             "category": "Example Category",
             "canonical": "http://example.org/ig",
@@ -303,22 +220,11 @@ class TestGetPackageInformation(unittest.TestCase):
             "introduction": "This is a fine IG",
         }
 
-        self.setupFiles(**input_data)
-
-        try:
-            res = ig.get_package_information(Path(self.tmpdir.name))
-            self.assertIsInstance(res, IgInfoFirst)
-            res = json.loads(res.model_dump_json(exclude_none=True))
-
-            self.maxDiff = None
-            self.assertDictEqual(wanted, res)
-
-        except Exception as e:
-            self.fail(e)
+        self.process(setup_data=setup_data, wanted=wanted, first=True)
 
     def test_second_release(self):
 
-        input_data = {
+        setup_data = {
             "imp_guide": {
                 "id": "org.example.ig",
                 "url": "http://example.org/ig/ImplementationGuide/org.example.ig",
@@ -347,7 +253,7 @@ class TestGetPackageInformation(unittest.TestCase):
         }
 
         wanted = {
-            "title": "ImplementationGuide-org.example.ig",
+            "title": "Example IG",
             "package_id": "org.example.ig",
             "canonical": "http://example.org/ig",
             "sequence": "STU3",
@@ -360,15 +266,4 @@ class TestGetPackageInformation(unittest.TestCase):
             "publisher": "Example Publisher",
         }
 
-        self.setupFiles(**input_data)
-
-        try:
-            res = ig.get_package_information(Path(self.tmpdir.name))
-            self.assertIsInstance(res, IgInfo)
-            res = json.loads(res.model_dump_json(exclude_none=True))
-
-            self.maxDiff = None
-            self.assertDictEqual(wanted, res)
-
-        except Exception as e:
-            self.fail(e)
+        self.process(setup_data=setup_data, wanted=wanted)
