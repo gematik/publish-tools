@@ -26,6 +26,11 @@ class IgInfo(BaseModel):
         serialization_alias="releaseLabel",
         validation_alias=AliasChoices("releaseLabel", "release_label"),
     )
+    ci_build: AnyUrl | None = Field(
+        serialization_alias="ci-build",
+        validation_alias=AliasChoices("ci-build", "ci_build"),
+        default=None,
+    )
 
     @property
     def package(self):
