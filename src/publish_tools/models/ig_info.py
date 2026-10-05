@@ -47,6 +47,8 @@ class IgInfo(BaseModel):
             fhir_version=self.fhir_version,
             url=self.path,
             description=self.desc,
+            date=self.date,
+            status=self.release_label.value,
         )
 
 

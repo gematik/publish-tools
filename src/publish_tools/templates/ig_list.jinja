@@ -1,41 +1,58 @@
-<html>
-
+<!doctype html>
+<html lang="de">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ title | safe_escape }}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     {% include 'style.html' %}
 </head>
-
 <body>
-    <div class="container">
-        {% for topic, sequences in topics.items() | sort_sequences %}
-        <h1>{{ topic | safe_escape }}</h1>
-
-        <table class="history-grid">
-            <thead>
-                <tr>
-                    <th width="100px">IG</th>
-                    <th width="100px">Version</th>
-                    <th>Beschreibung</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sequence, editions in sequences.items() | sort(reverse=True) %}
-                <tr class="sequence">
-                    <td colspan="4">{{ sequence | safe_escape }}</td>
-                </tr>
-                {% for edition in editions | sort(attribute="ig_version", reverse=True) | sort(attribute="name") %}
-                <tr>
-                    <td><a href="{{ edition.url }}">{{ edition.name | safe_escape }}</a></td>
-                    <td><a href="{{ edition.url }}">{{ edition.ig_version }}</a></td>
-                    <td>{{ edition.description | safe_escape }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
+<main class="container">
+    {% include 'brand.html' %}
+    <header class="page-header">
+        <p class="eyebrow">Implementation Guides</p>
+        <h1>Paketübersicht</h1>
+        <p class="muted">Alle Pakete nach Package-ID. Die aktuelle Veröffentlichung steht im Vordergrund; Ballots und Release Candidates sind gesondert markiert.</p>
+    </header>
+    {% macro edition_row(edition, label='') %}
+        <div class="card-heading"><span>{{ (label or 'Veröffentlichung') | safe_escape }}</span>
+            <a class="badge" href="{{ edition.url | safe_escape }}">{{ edition.ig_version | safe_escape }}</a></div>
+        <p>{{ edition.description | safe_escape }}</p>
+        <p class="metadata">{% if edition.date %}Veröffentlicht: <time datetime="{{ edition.date }}">{{ edition.date.strftime('%d.%m.%Y') }}</time>{% endif %} · FHIR {{ edition.fhir_version | join(', ') | safe_escape }}</p>
+    {% endmacro %}
+    <div class="package-list">
+    {% for package in packages %}
+    <article class="card">
+        <h2 class="package-title">{{ package.name | safe_escape }}</h2>
+        <p class="package-id">{{ package.package_id | safe_escape }}</p>
+        {% if package.latest %}
+        <section class="release-channel stable">
+            {{ edition_row(package.latest, 'Aktuelle Veröffentlichung') }}
+            {% if package.older %}
+            <details><summary>Ältere Veröffentlichungen <span class="count">{{ package.older | length }}</span></summary>
+                <ul class="version-list">{% for edition in package.older %}<li>{{ edition_row(edition) }}</li>{% endfor %}</ul>
+            </details>
+            {% endif %}
+        </section>
+        {% else %}
+        <p class="muted">Noch keine reguläre Veröffentlichung.</p>
+        {% endif %}
+        {% for preview in package.previews %}
+        <section class="release-channel preview">
+            <h3>{{ preview.name | safe_escape }}</h3>
+            <ul class="version-list">{% for edition in preview.visible %}<li>{{ edition_row(edition, preview.name) }}</li>{% endfor %}</ul>
+            {% if preview.older %}
+            <details><summary>Ältere {{ preview.name | safe_escape }}-Versionen <span class="count">{{ preview.older | length }}</span></summary>
+                <ul class="version-list">{% for edition in preview.older %}<li>{{ edition_row(edition, preview.name) }}</li>{% endfor %}</ul>
+            </details>
+            {% endif %}
+        </section>
         {% endfor %}
+    </article>
+    {% else %}
+    <p class="card muted">Noch keine Pakete veröffentlicht.</p>
+    {% endfor %}
     </div>
+</main>
 </body>
-
 </html>

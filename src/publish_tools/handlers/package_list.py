@@ -125,7 +125,7 @@ def from_history(guide: Guide) -> PackageList:
         )
 
         ig_dict = json.loads(resp.text) if resp.status_code == 200 else {}
-        date_ = date.fromisoformat(d) if (d := ig_dict.get("date")) else date.today()
+        date_ = edition.date or (date.fromisoformat(d) if (d := ig_dict.get("date")) else date.today())
 
         # Try to get the status from the online IG
         # Get the list of extensions
@@ -168,7 +168,7 @@ def from_history(guide: Guide) -> PackageList:
         status = (
             SushiConfigReleaseLabel(v)
             if (v := release_value.get("valueString"))
-            else SushiConfigReleaseLabel.RELEASE
+            else SushiConfigReleaseLabel(edition.status or "release")
         )
 
         # Append entry
@@ -184,6 +184,9 @@ def from_history(guide: Guide) -> PackageList:
             )
         )
 
+    list_.append(PackageListCiBuildEntry(
+        path=guide.ci_build, desc=CI_VERSION_DESCRIPTION,
+    ))
     feed.list = list_
 
     return feed

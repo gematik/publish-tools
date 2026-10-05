@@ -28,6 +28,30 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     return file
 
 
+def release_channel(version: str, sequence: str = "", status: str = "") -> str:
+    """Identify preview releases from both versions and publication metadata."""
+    text = f"{version} {sequence} {status}"
+    if re.search(r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)", text, re.I):
+        return "Ballot"
+    if re.search(r"[-.]b\d+(?:[.\-]|$)", version, re.I):
+        return "Ballot"
+    if re.search(r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)", text, re.I):
+        return "Release Candidate"
+    return "Veröffentlichungen"
+
+
+def version_key(version: str):
+    """Compare numeric release components and put prereleases before releases."""
+    core, separator, prerelease = version.lstrip("v").split("+", 1)[0].partition("-")
+    parts = tuple(int(part) for part in core.split(".") if part.isdigit())
+    parts = parts + (0,) * max(0, 3 - len(parts))
+    identifiers = tuple(
+        (0, int(part)) if part.isdigit() else (1, part.lower())
+        for part in prerelease.split(".")
+    ) if separator else ()
+    return parts, not separator, identifiers
+
+
 def sort_sequences(items: list[tuple[str, dict]], reverse=False):
     """
     Sort a dictionary with sequence names as keys

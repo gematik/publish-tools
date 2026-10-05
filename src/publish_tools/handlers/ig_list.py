@@ -1,18 +1,15 @@
-import re
 from pathlib import Path
 
 from .. import log
 from ..models.guide import Guide
 from ..models.ig_info import IgInfo, IgInfoFirst
 from ..models.ig_list import IgList
-from .helper import read
+from .helper import read, release_channel, version_key
 from .helper import render as render_helper
 from .helper import write
 
 FILE_NAME = "ig_list.json"
 RENDER_FILE_NAME = "index.html"
-
-TOPIC_REGEX = re.compile(r"^(.+)\s[\-\d\.(ballot|b)]+$")
 
 
 def update(ig_registry_dir: Path, info: IgInfo | IgInfoFirst) -> IgList:
@@ -66,29 +63,36 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
     if ig_list is None and (ig_list := read(registry_dir, FILE_NAME, IgList)) is None:
         ig_list = IgList()
 
-    data = {"title": "IG List", "topics": {}}
+    packages = {}
     for guide in ig_list.guides:
+        package = packages.setdefault(guide.npm_name, {
+            "name": guide.name, "package_id": guide.npm_name, "editions": {},
+        })
         for edition in guide.editions:
-            topic = (
-                match[1]
-                if (match := TOPIC_REGEX.match(edition.name)) is not None
-                else edition.name
-            )
-            if topic not in data["topics"]:
-                data["topics"][topic] = {}
+            package["editions"][edition.package] = edition
 
-            if edition.name not in data["topics"][topic]:
-                data["topics"][topic][edition.name] = []
-
-            g = {
-                "name": guide.name,
-                "ig_version": edition.ig_version,
-                "fhir_version": edition.fhir_version,
-                "description": edition.description,
-                "url": edition.url,
-            }
-
-            data["topics"][topic][edition.name].append(g)
+    data = {"title": "IG List", "packages": []}
+    for package_id, package in sorted(packages.items()):
+        editions = sorted(package.pop("editions").values(),
+                          key=lambda edition: version_key(edition.ig_version), reverse=True)
+        stable = [edition for edition in editions if
+                  release_channel(edition.ig_version, edition.name, edition.status or "") == "Veröffentlichungen"]
+        latest = stable[0] if stable else None
+        package["latest"] = latest
+        package["older"] = stable[1:]
+        package["previews"] = []
+        for name in ("Ballot", "Release Candidate"):
+            previews = [edition for edition in editions if
+                        release_channel(edition.ig_version, edition.name, edition.status or "") == name]
+            if previews:
+                visible = [edition for index, edition in enumerate(previews)
+                           if index == 0 or (name == "Ballot" and latest and latest.date
+                                             and edition.date and edition.date < latest.date)]
+                package["previews"].append({
+                    "name": name, "visible": visible,
+                    "older": [edition for edition in previews if edition not in visible],
+                })
+        data["packages"].append(package)
 
     render_helper(registry_dir, RENDER_FILE_NAME, data, "ig_list.jinja")
     log.succ("rendered ig list")

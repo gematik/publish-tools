@@ -1,38 +1,45 @@
-<html>
-
+<!doctype html>
+<html lang="de">
 <head>
-    <title>{{ title | safe_escape }} History</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title | safe_escape }} – Versionshistorie</title>
     {% include 'style.html' %}
 </head>
-
 <body>
-    <div class="container">
-        <h1>{{ title | safe_escape }} History</h1>
-        <p>{{ introduction | safe_escape }}</p>
+<main class="container">
+    {% include 'brand.html' %}
+    <header class="page-header">
+        <p class="eyebrow">Versionshistorie</p>
+        <h1>{{ title | safe_escape }}</h1>
+        <p class="muted">{{ introduction | safe_escape }}</p>
+    </header>
+    {% for entry in ci_builds %}
+    <aside class="card build-card"><div class="card-heading"><h2>Current · CI Build</h2><a class="badge" href="{{ entry.path | safe_escape }}">Build öffnen</a></div><p>{{ entry.desc | safe_escape }}</p><a class="build-path" href="{{ entry.path | safe_escape }}">{{ entry.path | safe_escape }}</a></aside>
+    {% endfor %}
+    {% for channel in channels %}
+    {% set latest = channel.latest %}
+    <article class="card history-channel {{ 'stable' if channel.name == 'Veröffentlichungen' else 'preview' }}">
+        <div class="card-heading"><h2>{{ channel.name | safe_escape }}</h2><a class="badge" href="{{ latest.path | safe_escape }}">{{ latest.version | safe_escape }}</a></div>
+        <p>{{ latest.desc | safe_escape }}</p>
+        <p class="metadata">Veröffentlicht: <time datetime="{{ latest.date }}">{{ latest.date.strftime('%d.%m.%Y') }}</time> · FHIR {{ latest.fhir_version | safe_escape }}</p>
+        {% if channel.older %}
+        <details>
+            <summary>Ältere Versionen</summary>
+            <ul class="version-list">
+                {% for entry in channel.older %}
+                <li><a href="{{ entry.path | safe_escape }}">Version {{ entry.version | safe_escape }}</a>
+                    <p>{{ entry.desc | safe_escape }}</p>
+                    <p class="metadata">Veröffentlicht: <time datetime="{{ entry.date }}">{{ entry.date.strftime('%d.%m.%Y') }}</time> · FHIR {{ entry.fhir_version | safe_escape }}</p></li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endif %}
+    </article>
+    {% else %}
+    <p class="card muted">Noch keine Version veröffentlicht.</p>
+    {% endfor %}
 
-        <table class="history-grid">
-            <thead>
-                <tr>
-                    <th width="100px">Version</th>
-                    <th>Beschreibung</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sequence, entries in sequences.items() | sort_sequences(reverse=True) %}
-                <tr class="sequence">
-                    <td colspan="3">{{ sequence | safe_escape }}</td>
-                </tr>
-                {% for entry in entries | sort(attribute="version", reverse=True) %}
-                <tr>
-                    <td><a href="{{ entry.path }}">{{ entry.version }}</a></td>
-                    <td>{{ entry.desc | safe_escape }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+</main>
 </body>
-
 </html>

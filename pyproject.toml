@@ -32,4 +32,7 @@ package = true
 package-data = { "publish_tools" = ["templates/**"] }
 
 [dependency-groups]
-dev = ["deepdiff>=9.0.0"]
+dev = [
+    "pytest>=9.1.1",
+    "deepdiff>=9.0.0"
+]

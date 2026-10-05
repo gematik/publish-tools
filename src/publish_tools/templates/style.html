@@ -1,48 +1,47 @@
 <style>
-    body {
-        font-family: verdana;
-        font-size: 12px;
-        width: 100%;
-        word-wrap: break-word;
-    }
-
-    table {
-        width: 100%;
-        background-color: transparent;
-        border-spacing: 0;
-    }
-
-    tr {
-        text-align: left;
-    }
-
-    table.history-grid {
-        font-size: 12px;
-        margin-bottom: 10px;
-        border: 1px solid silver;
-    }
-
-    table.history-grid th {
-        border: 1px solid silver;
-        padding: 3px;
-    }
-
-    table.history-grid td {
-        border: 1px solid silver;
-        padding: 3px;
-    }
-
-    table.history-grid tr.sequence {
-        background-color: #f9f9f9;
-        font-weight: bold;
-    }
-
-    thead {
-        background-color: #efefef;
-    }
-
-    .container {
-        padding-left: 20%;
-        padding-right: 20%;
-    }
+    :root { color-scheme: light; --ink: #000e52; --muted: #5f6e82; --accent: #000e52; --line: #e0e7ef; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #ffffff; color: var(--ink); font: 16px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; overflow-wrap: anywhere; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
+    .page-header { margin-bottom: 48px; padding: 40px; background: #edf2f7; border-top: 8px solid #000e52; }
+    .eyebrow { color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -.035em; margin: 12px 0 20px; }
+    h2 { font-size: 1.2rem; line-height: 1.4; margin: 0; }
+    h3 { font-size: 1rem; margin: 24px 0 8px; }
+    p { margin: 6px 0; }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    h2 a { text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 5px; border-radius: 4px; }
+    .muted, .metadata, .package-id { color: var(--muted); }
+    .metadata, .package-id { font-size: .875rem; }
+    .package-id { margin: 4px 0 0; font-family: ui-monospace, monospace; }
+    .package-list { display: grid; gap: 12px; }
+    .card { background: white; border: 1px solid var(--line); border-radius: 0; padding: 18px; box-shadow: none; }
+    .card-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .badge { display: inline-block; background: #000e52; color: white; border-radius: 0; padding: 3px 10px; font-size: .875rem; font-weight: 650; text-decoration: none; }
+    details { margin-top: 10px; border-top: 1px solid var(--line); }
+    summary { cursor: pointer; padding: 10px 0 0; color: var(--accent); font-weight: 600; }
+    .count { display: inline-block; margin-left: 6px; padding: 0 8px; background: #edf1f6; color: var(--muted); border-radius: 999px; font-size: .8rem; }
+    .version-list { list-style: none; margin: 8px 0 0; padding: 0; }
+    .version-list li { padding: 10px 0; border-top: 1px solid var(--line); }
+    .version-list p { margin: 4px 0 0; }
+    .build-card { margin-top: 20px; background: #fafcff; }
+    @media (max-width: 600px) { .container { padding: 32px 16px 48px; } .card { padding: 20px; } }
+    @media print { body { background: white; } .container { padding: 0; } .card { box-shadow: none; break-inside: avoid; } }
+    .sequence-section { margin: 48px 0; }
+    .section-heading { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--ink); }
+    .section-heading h2 { font-size: 1.8rem; }
+    .package-title { font-size: 1.3rem; margin: 0; }
+    .release-channel { margin-top: 12px; padding: 12px; background: #f3f6f9; border-left: 4px solid var(--ink); }
+    .release-channel.preview { background: #fff7e8; border-left-color: #996000; }
+    .preview .badge { background: #805000; }
+    h4 { margin: 0; font-size: 1rem; }
+    @media (max-width: 600px) { .page-header { padding: 24px 20px; } .release-channel { padding: 16px; } }
+    .history-channel { margin-bottom: 12px; border-top: 4px solid var(--ink); }
+    .history-channel.preview { border-top-color: #996000; }
+    .brand-header { margin-bottom: 28px; }
+    .brand-header img { display: block; max-width: 100%; object-fit: contain; object-position: left; }
+    .build-card { margin-bottom: 24px; }
+    .build-path { font-size: .875rem; }
 </style>

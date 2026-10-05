@@ -93,6 +93,8 @@ class TestUpdate(unittest.TestCase):
                         {
                             "name": "Test",
                             "ig_version": "0.0.1",
+                            "date": "2000-01-01",
+                            "status": "release",
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
@@ -138,6 +140,8 @@ class TestUpdate(unittest.TestCase):
                         {
                             "name": "Test",
                             "ig_version": "0.0.1",
+                            "date": "2000-01-01",
+                            "status": "release",
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
@@ -182,6 +186,8 @@ class TestUpdate(unittest.TestCase):
                         {
                             "name": "Test",
                             "ig_version": "0.0.1",
+                            "date": "2000-01-01",
+                            "status": "release",
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
@@ -237,6 +243,8 @@ class TestUpdate(unittest.TestCase):
                         {
                             "name": "Test",
                             "ig_version": "0.0.1",
+                            "date": "2000-01-01",
+                            "status": "release",
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
@@ -263,6 +271,8 @@ class TestUpdate(unittest.TestCase):
                         {
                             "name": "Test",
                             "ig_version": "0.0.1",
+                            "date": "2000-01-01",
+                            "status": "release",
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
@@ -301,6 +311,8 @@ class TestUpdate(unittest.TestCase):
                         {
                             "name": "Test",
                             "ig_version": "0.0.1",
+                            "date": "2000-01-01",
+                            "status": "release",
                             "package": "org.example.ig#0.0.1",
                             "fhir_version": ["4.0.1"],
                             "url": "http://example.org/ig/0.0.1",
