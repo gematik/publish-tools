@@ -61,7 +61,11 @@ def update(ig_registry_dir: Path, info: IgInfo | IgInfoFirst) -> IgList:
 
 def package_families(package_ids):
     """
-    Group at an existing parent or shared branching namespace.
+    Map each package ID to its family prefix.
+
+    Use the shortest shared prefix that is an existing package ID or branches
+    into multiple namespaces with at least three components. Packages without
+    a qualifying shared prefix retain their full ID as the family name.
     """
     package_ids = set(package_ids)
     children, members = {}, {}

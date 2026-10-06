@@ -32,7 +32,13 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
 
 
 def release_channel(version: str, sequence: str = "", status: str = "") -> str:
-    """Prefer explicit version markers over sequence and status metadata."""
+    """
+    Classify a release as stable, Release Candidate, or Ballot.
+
+    Explicit version markers take precedence over sequence and status metadata.
+    Build metadata after "+" is ignored. Without a recognized RC or Ballot
+    marker, the release is classified as "Veröffentlichungen".
+    """
     rc_pattern = r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)"
     ballot_pattern = r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)"
     if re.search(rc_pattern, version.split("+", 1)[0], re.I):
@@ -49,7 +55,13 @@ def release_channel(version: str, sequence: str = "", status: str = "") -> str:
 
 
 def version_key(version: str):
-    """Compare numeric release components and put prereleases before releases."""
+    """
+    Build a sorting key using numeric version components.
+
+    Ignore leading "v" characters and build metadata after "+". For the same
+    core version, prereleases sort before releases; numeric prerelease
+    identifiers sort numerically and before text identifiers.
+    """
     core, separator, prerelease = version.lstrip("v").split("+", 1)[0].partition("-")
     parts = tuple(int(part) for part in core.split(".") if part.isdigit())
     parts = parts + (0,) * max(0, 3 - len(parts))
