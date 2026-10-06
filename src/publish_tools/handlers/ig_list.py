@@ -76,13 +76,22 @@ def package_families(package_ids):
             members.setdefault(prefix, set()).add(package_id)
             if length < len(parts):
                 children.setdefault(prefix, set()).add(parts[length])
-    return {package_id: next((prefix
-            for length in range(1, len(package_id.split(".")) + 1)
-            if (prefix := ".".join(package_id.split(".")[:length]))
-            and len(members[prefix]) > 1
-            and (prefix in package_ids or
-                 (length >= 3 and len(children.get(prefix, ())) > 1))), package_id)
-            for package_id in package_ids}
+    return {
+        package_id: next(
+            (
+                prefix
+                for length in range(1, len(package_id.split(".")) + 1)
+                if (prefix := ".".join(package_id.split(".")[:length]))
+                and len(members[prefix]) > 1
+                and (
+                    prefix in package_ids
+                    or (length >= 3 and len(children.get(prefix, ())) > 1)
+                )
+            ),
+            package_id,
+        )
+        for package_id in package_ids
+    }
 
 
 def render(registry_dir: Path, ig_list: IgList | None = None):
@@ -91,9 +100,14 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
 
     packages = {}
     for guide in ig_list.guides:
-        package = packages.setdefault(guide.npm_name, {
-            "name": guide.name, "package_id": guide.npm_name, "editions": {},
-        })
+        package = packages.setdefault(
+            guide.npm_name,
+            {
+                "name": guide.name,
+                "package_id": guide.npm_name,
+                "editions": {},
+            },
+        )
         for edition in guide.editions:
             package["editions"][(edition.package, str(edition.url))] = edition
 
@@ -104,29 +118,46 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
         for edition in package.pop("editions").values():
             channel = release_channel(edition.ig_version, edition.name)
             releases = channels.setdefault(channel, {})
-            release = releases.setdefault(edition.ig_version, {
-                "version": edition.ig_version, "igs": [],
-            })
+            release = releases.setdefault(
+                edition.ig_version,
+                {
+                    "version": edition.ig_version,
+                    "igs": [],
+                },
+            )
             release["igs"].append(edition)
         for releases in channels.values():
             for release in releases.values():
-                release["igs"].sort(key=lambda edition: (edition.name.casefold(), str(edition.url)))
+                release["igs"].sort(
+                    key=lambda edition: (edition.name.casefold(), str(edition.url))
+                )
 
-        stable = sorted(channels.get("Veröffentlichungen", {}).values(),
-                        key=lambda release: version_key(release["version"]), reverse=True)
+        stable = sorted(
+            channels.get("Veröffentlichungen", {}).values(),
+            key=lambda release: version_key(release["version"]),
+            reverse=True,
+        )
         latest = stable[0] if stable else None
         package["latest"] = latest
         package["older"] = stable[1:]
         package["previews"] = []
         for name in ("Ballot", "Release Candidate"):
-            previews = sorted(channels.get(name, {}).values(),
-                              key=lambda release: version_key(release["version"]), reverse=True)
+            previews = sorted(
+                channels.get(name, {}).values(),
+                key=lambda release: version_key(release["version"]),
+                reverse=True,
+            )
             if previews:
                 visible = previews[:1]
-                package["previews"].append({
-                    "name": name, "visible": visible,
-                    "older": [release for release in previews if release not in visible],
-                })
+                package["previews"].append(
+                    {
+                        "name": name,
+                        "visible": visible,
+                        "older": [
+                            release for release in previews if release not in visible
+                        ],
+                    }
+                )
         data["groups"].setdefault(families[package_id], []).append(package)
 
     render_helper(registry_dir, RENDER_FILE_NAME, data, "ig_list.jinja")

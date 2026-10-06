@@ -18,26 +18,40 @@ def render(ig_dir: Path, plist: PackageList):
     builds = [entry for entry in plist.list if not hasattr(entry, "sequence")]
     releases = sorted(
         [entry for entry in plist.list if hasattr(entry, "sequence")],
-        key=lambda entry: (entry.date, version_key(entry.version)), reverse=True,
+        key=lambda entry: (entry.date, version_key(entry.version)),
+        reverse=True,
     )
-    stable = [entry for entry in releases if release_channel(entry.version, entry.sequence, entry.status.value) == "Veröffentlichungen"]
+    stable = [
+        entry
+        for entry in releases
+        if release_channel(entry.version, entry.sequence, entry.status.value)
+        == "Veröffentlichungen"
+    ]
     current = stable[:1]
     data["current_entries"] = current + builds
     data["channels"] = []
     for name in ("Veröffentlichungen", "Release Candidate", "Ballot"):
-        entries = [entry for entry in releases if
-                   release_channel(entry.version, entry.sequence, entry.status.value) == name]
+        entries = [
+            entry
+            for entry in releases
+            if release_channel(entry.version, entry.sequence, entry.status.value)
+            == name
+        ]
         if not entries:
             continue
         sequences = {}
         for entry in entries:
             sequences.setdefault(entry.sequence, []).append(entry)
-        data["channels"].append({
-            "name": name,
-            "current": [entry for entry in current if entry in entries],
-            "sequences": sequences,
-            "current_sequences": {entry.sequence for entry in current if entry in entries},
-        })
+        data["channels"].append(
+            {
+                "name": name,
+                "current": [entry for entry in current if entry in entries],
+                "sequences": sequences,
+                "current_sequences": {
+                    entry.sequence for entry in current if entry in entries
+                },
+            }
+        )
     data["release_channel"] = release_channel
 
     render_helper(ig_dir, RENDER_FILE_NAME, data, "history.jinja")

@@ -43,8 +43,9 @@ def release_channel(version: str, sequence: str = "", status: str = "") -> str:
     ballot_pattern = r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)"
     if re.search(rc_pattern, version.split("+", 1)[0], re.I):
         return "Release Candidate"
-    if (re.search(ballot_pattern, version.split("+", 1)[0], re.I)
-            or re.search(r"[-.]b\d+(?:[.\-]|$)", version.split("+", 1)[0], re.I)):
+    if re.search(ballot_pattern, version.split("+", 1)[0], re.I) or re.search(
+        r"[-.]b\d+(?:[.\-]|$)", version.split("+", 1)[0], re.I
+    ):
         return "Ballot"
     metadata = f"{sequence} {status}"
     if re.search(ballot_pattern, metadata, re.I):
@@ -65,10 +66,14 @@ def version_key(version: str):
     core, separator, prerelease = version.lstrip("v").split("+", 1)[0].partition("-")
     parts = tuple(int(part) for part in core.split(".") if part.isdigit())
     parts = parts + (0,) * max(0, 3 - len(parts))
-    identifiers = tuple(
-        (0, int(part)) if part.isdigit() else (1, part.lower())
-        for part in prerelease.split(".")
-    ) if separator else ()
+    identifiers = (
+        tuple(
+            (0, int(part)) if part.isdigit() else (1, part.lower())
+            for part in prerelease.split(".")
+        )
+        if separator
+        else ()
+    )
     return parts, not separator, identifiers
 
 
