@@ -55,10 +55,11 @@ def test_list_groups_versions_by_package():
         assert links[f'https://example.org/{package}/1.10.0'] is False
         assert links[f'https://example.org/{package}/1.9.0'] is True
     assert '<script>unsafe</script>' not in html
-    assert 'Datum unbekannt' in html
+    assert 'href="https://example.org/one/1.10.0">1.10.0</a>' in html
+    assert '<a class="ig-name"' not in html
 
 
-def test_history_prefers_current_release_and_keeps_ci_separate():
+def test_history_selects_latest_stable_release_and_keeps_ci_separate():
     plist = PackageList.model_validate(dict(
         package_id='example', canonical='https://example.org/', title='Example',
         introduction='Test', list=[
@@ -74,9 +75,12 @@ def test_history_prefers_current_release_and_keeps_ci_separate():
         html = (Path(directory) / 'index.html').read_text()
     links = VersionLinks(html).links
     assert links['https://example.org/1.9.0'] is False
-    assert links['https://example.org/1.10.0'] is True
+    assert links['https://example.org/1.10.0'] is False
     assert links['https://example.org/ci'] is False
-    assert 'Veröffentlicht: <time datetime="2026-01-01">01.01.2026</time>' in html
+    assert '<time datetime="2026-01-01">01.01.2026</time>' in html
+    assert 'Aktuelle Versionen' in html
+    assert 'class="publication-table"' in html
+    assert html.count('href="https://example.org/1.10.0"') == 4
     assert 'Release ·' not in html
 
 
@@ -125,9 +129,12 @@ def test_preview_detection_from_sequence_and_version():
     assert release_channel('1.0.0-b1') == 'Ballot'
     assert release_channel('1.0.0-RC1') == 'Release Candidate'
     assert release_channel('1.0.0', 'Beschreibung') == 'Veröffentlichungen'
+    assert release_channel('1.4.0-rc.1', 'TI Common Ballot', 'ballot') == 'Release Candidate'
+    assert release_channel('1.4.0-ballot.1', 'TI Common RC', 'release') == 'Ballot'
+    assert release_channel('1.4.0-b1', 'TI Common RC') == 'Ballot'
 
 
-def test_ballots_before_release_date_remain_visible():
+def test_legacy_dates_are_ignored_and_older_ballots_collapse():
     versions = [
         ('2.0.0', '2026-06-01', 'release'),
         ('3.0.0-ballot.1', '2026-05-01', 'ballot'),
@@ -144,13 +151,17 @@ def test_ballots_before_release_date_remain_visible():
         html = (Path(directory) / 'index.html').read_text()
     links = VersionLinks(html).links
     assert links['https://example.org/2.0.0'] is False
-    assert links['https://example.org/3.0.0-ballot.1'] is False
+    assert links['https://example.org/3.0.0-ballot.1'] is True
     assert links['https://example.org/3.0.0-ballot.2'] is True
     assert links['https://example.org/3.0.0-ballot.3'] is False
     assert html.count('class="package-id"') == 1
     assert 'alt="gematik"' in html
-    assert 'Veröffentlicht: <time datetime="2026-06-01">01.06.2026</time>' in html
-    assert 'Sequence' not in html
+    assert 'Veröffentlicht:' not in html
+    assert '2026-06-01' not in html
+    edition = IgList(guides=[guide]).guides[0].editions[0]
+    assert 'date' not in edition.model_dump()
+    assert 'status' not in edition.model_dump()
+    assert 'Sequence: Sequence' in html
 
 
 def test_from_history_includes_current_build():
@@ -169,3 +180,112 @@ def test_from_history_includes_current_build():
     assert 'Current' in html
     assert 'https://example.org/build' in html
     assert VersionLinks(html).links['https://example.org/build'] is False
+
+
+def test_package_families_keep_each_package_visible():
+    ids = ['de.gematik.epa', 'de.gematik.epa.medication',
+           'de.gematik.epa.medication.examples', 'de.gematik.tiflow.core',
+           'de.gematik.tiflow.test', 'de.gematik.epaother']
+    families = ig_list.package_families(ids)
+    assert all(families[package] == 'de.gematik.epa' for package in ids[:3])
+    assert all(families[package] == 'de.gematik.tiflow' for package in ids[3:5])
+    assert families[ids[-1]] == ids[-1]
+
+
+def test_package_families_support_long_ids_and_single_packages():
+    ids = ['de.gematik.ig.sandbox', 'de.gematik.other.deep.core',
+           'de.gematik.other.deep.examples', 'org.example.parent',
+           'org.example.parent.child']
+    families = ig_list.package_families(ids)
+    assert families[ids[0]] == ids[0]
+    assert families[ids[1]] == 'de.gematik.other.deep'
+    assert families[ids[2]] == 'de.gematik.other.deep'
+    assert families[ids[4]] == ids[3]
+    assert ig_list.package_families([]) == {}
+
+
+def test_multiple_igs_per_package_version_are_preserved():
+    from unittest.mock import patch
+    from publish_tools.models.guide import Guide
+    from publish_tools.models.ig_info import IgInfo
+    editions = [dict(name=f'ISiK {module} {version}', ig_version=version,
+                     package=f'de.gematik.isik#{version}', fhir_version=['4.0.1'],
+                     url=f'https://example.org/{module}/{version}', description=f'{module} guide')
+                for version in ['5.0.0', '6.0.0', '7.0.0-rc.1', '7.0.0-rc.2']
+                for module in ['Basis', 'Labor']]
+    guide = Guide(name='ISiK', npm_name='de.gematik.isik', category='test',
+                  canonical='https://example.org/', ci_build='https://example.org/ci',
+                  description='Guide', editions=editions)
+    registry = IgList(guides=[guide])
+    with TemporaryDirectory() as directory:
+        path = Path(directory)
+        ig_list.render(path, registry)
+        html = (path / 'index.html').read_text()
+        links = VersionLinks(html).links
+        for module in ['Basis', 'Labor']:
+            assert links[f'https://example.org/{module}/6.0.0'] is False
+            assert links[f'https://example.org/{module}/5.0.0'] is True
+            assert links[f'https://example.org/{module}/7.0.0-rc.2'] is False
+            assert links[f'https://example.org/{module}/7.0.0-rc.1'] is True
+        assert html.count('>6.0.0</span>') == 1
+        assert '<a class="ig-name" href="https://example.org/Basis/6.0.0">Basis guide</a>' in html
+        assert '<a class="ig-name" href="https://example.org/Labor/6.0.0">Labor guide</a>' in html
+        assert 'IG 1 öffnen' not in html
+        assert html.count('ISiK Basis 6.0.0') == 1
+        info = IgInfo(title='ISiK', package_id='de.gematik.isik',
+                      canonical='https://example.org/', sequence='ISiK Labor 6.0.0',
+                      version='6.0.0', fhir_version=['4.0.1'], path='https://example.org/Labor/6.0.0',
+                      desc='Updated labor', date='2026-01-01', release_label='release', publisher='Test')
+        with patch.object(ig_list, 'read', return_value=registry):
+            result = ig_list.update(path, info)
+        assert len(result.guides[0].editions) == 8
+        assert result.guides[0].editions[2].description == 'Basis guide'
+        assert result.guides[0].editions[3].description == 'Updated labor'
+
+
+def test_history_separates_previews_within_same_sequence():
+    from unittest.mock import patch
+    plist = PackageList.model_validate(dict(
+        package_id='example', canonical='https://example.org/', title='Example',
+        introduction='Test', list=[dict(
+            version=version, path=f'https://example.org/{version}', desc='Release',
+            status=status, current=False, date='2026-01-01',
+            sequence='Same sequence', fhir_version='4.0.1',
+        ) for version, status in [('1.0.0', 'release'),
+                                  ('1.1.0-rc.1', 'ballot'), ('1.1.0-ballot.1', 'ballot')]],
+    ))
+    with patch.object(ig_history, 'render_helper') as render:
+        ig_history.render(Path('.'), plist)
+    channels = render.call_args.args[2]['channels']
+    assert [channel['name'] for channel in channels] == [
+        'Veröffentlichungen', 'Release Candidate', 'Ballot'
+    ]
+    assert [channel['sequences']['Same sequence'][0].version for channel in channels] == [
+        '1.0.0', '1.1.0-rc.1', '1.1.0-ballot.1'
+    ]
+
+
+def test_history_current_excludes_marked_current_previews():
+    from unittest.mock import patch
+    for preview in ['2.0.0-rc.1', '2.0.0-ballot.1']:
+        plist = PackageList.model_validate(dict(
+            package_id='example', canonical='https://example.org/', title='Example',
+            introduction='Test', list=[
+                dict(path='https://example.org/build', desc='CI'),
+                *[dict(version=version, path=f'https://example.org/{version}',
+                       desc='Release', status=status, current=current,
+                       date=date, sequence='Test', fhir_version='4.0.1')
+                  for version, status, current, date in [
+                      ('1.0.0', 'release', False, '2026-01-01'),
+                      (preview, 'ballot', True, '2026-02-01')]],
+            ],
+        ))
+        with patch.object(ig_history, 'render_helper') as render:
+            ig_history.render(Path('.'), plist)
+        data = render.call_args.args[2]
+        assert [entry.version for entry in data['current_entries']] == ['1.0.0', 'current']
+        assert data['channels'][1]['current'] == []
+        plist.list = [plist.list[0], plist.list[2]]
+        with patch.object(ig_history, 'render_helper') as render:
+            ig_history.render(Path('.'), plist)
+        assert [entry.version for entry in render.call_args.args[2]['current_entries']] == ['current']

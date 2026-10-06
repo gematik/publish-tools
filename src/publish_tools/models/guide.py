@@ -1,5 +1,3 @@
-from datetime import date as datetime_date
-
 from pydantic import AliasChoices, AnyUrl, BaseModel, Field
 
 
@@ -16,8 +14,6 @@ class Edition(BaseModel):
     )
     url: AnyUrl
     description: str
-    date: datetime_date | None = None
-    status: str | None = None
 
 
 class Guide(BaseModel):

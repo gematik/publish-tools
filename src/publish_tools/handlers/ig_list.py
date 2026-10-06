@@ -26,7 +26,7 @@ def update(ig_registry_dir: Path, info: IgInfo | IgInfoFirst) -> IgList:
 
             edition_found = False
             for i, edition in enumerate(guide.editions):
-                if edition.package == info.package:
+                if edition.package == info.package and edition.url == info.path:
                     guide.editions[i] = info.edition
                     edition_found = True
                     break
@@ -59,6 +59,28 @@ def update(ig_registry_dir: Path, info: IgInfo | IgInfoFirst) -> IgList:
     return ig_list
 
 
+def package_families(package_ids):
+    """
+    Group at an existing parent or shared branching namespace.
+    """
+    package_ids = set(package_ids)
+    children, members = {}, {}
+    for package_id in package_ids:
+        parts = package_id.split(".")
+        for length in range(1, len(parts) + 1):
+            prefix = ".".join(parts[:length])
+            members.setdefault(prefix, set()).add(package_id)
+            if length < len(parts):
+                children.setdefault(prefix, set()).add(parts[length])
+    return {package_id: next((prefix
+            for length in range(1, len(package_id.split(".")) + 1)
+            if (prefix := ".".join(package_id.split(".")[:length]))
+            and len(members[prefix]) > 1
+            and (prefix in package_ids or
+                 (length >= 3 and len(children.get(prefix, ())) > 1))), package_id)
+            for package_id in package_ids}
+
+
 def render(registry_dir: Path, ig_list: IgList | None = None):
     if ig_list is None and (ig_list := read(registry_dir, FILE_NAME, IgList)) is None:
         ig_list = IgList()
@@ -69,30 +91,39 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
             "name": guide.name, "package_id": guide.npm_name, "editions": {},
         })
         for edition in guide.editions:
-            package["editions"][edition.package] = edition
+            package["editions"][(edition.package, str(edition.url))] = edition
 
-    data = {"title": "IG List", "packages": []}
+    families = package_families(packages)
+    data = {"title": "IG List", "groups": {}}
     for package_id, package in sorted(packages.items()):
-        editions = sorted(package.pop("editions").values(),
-                          key=lambda edition: version_key(edition.ig_version), reverse=True)
-        stable = [edition for edition in editions if
-                  release_channel(edition.ig_version, edition.name, edition.status or "") == "Veröffentlichungen"]
+        channels = {}
+        for edition in package.pop("editions").values():
+            channel = release_channel(edition.ig_version, edition.name)
+            releases = channels.setdefault(channel, {})
+            release = releases.setdefault(edition.ig_version, {
+                "version": edition.ig_version, "igs": [],
+            })
+            release["igs"].append(edition)
+        for releases in channels.values():
+            for release in releases.values():
+                release["igs"].sort(key=lambda edition: (edition.name.casefold(), str(edition.url)))
+
+        stable = sorted(channels.get("Veröffentlichungen", {}).values(),
+                        key=lambda release: version_key(release["version"]), reverse=True)
         latest = stable[0] if stable else None
         package["latest"] = latest
         package["older"] = stable[1:]
         package["previews"] = []
         for name in ("Ballot", "Release Candidate"):
-            previews = [edition for edition in editions if
-                        release_channel(edition.ig_version, edition.name, edition.status or "") == name]
+            previews = sorted(channels.get(name, {}).values(),
+                              key=lambda release: version_key(release["version"]), reverse=True)
             if previews:
-                visible = [edition for index, edition in enumerate(previews)
-                           if index == 0 or (name == "Ballot" and latest and latest.date
-                                             and edition.date and edition.date < latest.date)]
+                visible = previews[:1]
                 package["previews"].append({
                     "name": name, "visible": visible,
-                    "older": [edition for edition in previews if edition not in visible],
+                    "older": [release for release in previews if release not in visible],
                 })
-        data["packages"].append(package)
+        data["groups"].setdefault(families[package_id], []).append(package)
 
     render_helper(registry_dir, RENDER_FILE_NAME, data, "ig_list.jinja")
     log.succ("rendered ig list")

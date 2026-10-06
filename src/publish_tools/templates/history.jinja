@@ -10,36 +10,80 @@
 <main class="container">
     {% include 'brand.html' %}
     <header class="page-header">
-        <p class="eyebrow">Versionshistorie</p>
+        <p class="eyebrow">Publication (Version) History</p>
         <h1>{{ title | safe_escape }}</h1>
         <p class="muted">{{ introduction | safe_escape }}</p>
     </header>
-    {% for entry in ci_builds %}
-    <aside class="card build-card"><div class="card-heading"><h2>Current · CI Build</h2><a class="badge" href="{{ entry.path | safe_escape }}">Build öffnen</a></div><p>{{ entry.desc | safe_escape }}</p><a class="build-path" href="{{ entry.path | safe_escape }}">{{ entry.path | safe_escape }}</a></aside>
+    {% macro version_row(entry) %}
+    <tr>
+        <td>{% if entry.date is defined %}<span class="sr-only">Veröffentlicht: </span><time datetime="{{ entry.date }}">{{ entry.date.strftime('%d.%m.%Y') }}</time>{% else %}Current{% endif %}</td>
+        <td>
+            <a class="badge" href="{{ entry.path | safe_escape }}">{{ entry.version | safe_escape }}</a>
+            {% if entry.sequence is defined %}
+                {% set channel = release_channel(entry.version, entry.sequence, entry.status.value) %}
+                {% if channel != 'Veröffentlichungen' %}<span class="publication-status">{{ channel | safe_escape }}</span>{% endif %}
+            {% else %}<span class="status-label">CI Build</span>{% endif %}
+        </td>
+        <td>{{ entry.fhir_version | safe_escape if entry.fhir_version is defined else '–' }}</td>
+        <td>{{ entry.desc | safe_escape }}</td>
+        <td><a href="{{ entry.path | safe_escape }}" aria-label="{{ ('Version ' ~ entry.version ~ ' öffnen') | safe_escape }}">Öffnen ↗</a></td>
+    </tr>
+    {% endmacro %}
+    {% macro table_head(caption) %}
+        <caption class="sr-only">{{ caption | safe_escape }}</caption>
+        <thead>
+            <tr><th scope="col">Datum</th><th scope="col">IG-Version</th><th scope="col">FHIR-Version</th><th scope="col">Beschreibung</th><th scope="col">Links</th></tr>
+        </thead>
+    {% endmacro %}
+    {% macro sequence_rows(channel) %}
+        {% for sequence, entries in channel.sequences.items() %}
+        <tbody>
+            <tr class="publication-group{{ ' preview-group' if channel.name != 'Veröffentlichungen' else '' }}"><th colspan="5" scope="rowgroup">{% if channel.name != 'Veröffentlichungen' %}{{ channel.name | safe_escape }} · {% endif %}{{ sequence | safe_escape }} <!--span class="group-status">({{ 'Aktuell' if sequence in channel.current_sequences else 'Historisch' }})</span--></th></tr>
+            {% for entry in entries %}{{ version_row(entry) }}{% endfor %}
+        </tbody>
+        {% endfor %}
+    {% endmacro %}
+    {% if current_entries %}
+    <section class="history-section" aria-labelledby="current-heading">
+        <h2 id="current-heading">Aktuelle Versionen</h2>
+        <p class="muted">Aktuelle Veröffentlichung und Current / CI Build.</p>
+        <div class="history-table-wrapper" role="region" aria-label="Aktuelle Versionen" tabindex="0">
+            <table class="publication-table">
+                {{ table_head('Aktuelle Versionen') }}
+                <tbody>{% for entry in current_entries %}{{ version_row(entry) }}{% endfor %}</tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+    {% for channel in channels if channel.name == 'Veröffentlichungen' %}
+    <section class="history-section" aria-labelledby="releases-heading">
+        <h2 id="releases-heading">Veröffentlichte IGs</h2>
+        <p class="muted">Alle regulären Veröffentlichungen nach Sequence.</p>
+        <div class="history-table-wrapper" role="region" aria-label="Veröffentlichte IGs" tabindex="0">
+            <table class="publication-table">
+                {{ table_head('Veröffentlichte IGs') }}
+                {{ sequence_rows(channel) }}
+            </table>
+        </div>
+    </section>
     {% endfor %}
-    {% for channel in channels %}
-    {% set latest = channel.latest %}
-    <article class="card history-channel {{ 'stable' if channel.name == 'Veröffentlichungen' else 'preview' }}">
-        <div class="card-heading"><h2>{{ channel.name | safe_escape }}</h2><a class="badge" href="{{ latest.path | safe_escape }}">{{ latest.version | safe_escape }}</a></div>
-        <p>{{ latest.desc | safe_escape }}</p>
-        <p class="metadata">Veröffentlicht: <time datetime="{{ latest.date }}">{{ latest.date.strftime('%d.%m.%Y') }}</time> · FHIR {{ latest.fhir_version | safe_escape }}</p>
-        {% if channel.older %}
-        <details>
-            <summary>Ältere Versionen</summary>
-            <ul class="version-list">
-                {% for entry in channel.older %}
-                <li><a href="{{ entry.path | safe_escape }}">Version {{ entry.version | safe_escape }}</a>
-                    <p>{{ entry.desc | safe_escape }}</p>
-                    <p class="metadata">Veröffentlicht: <time datetime="{{ entry.date }}">{{ entry.date.strftime('%d.%m.%Y') }}</time> · FHIR {{ entry.fhir_version | safe_escape }}</p></li>
-                {% endfor %}
-            </ul>
-        </details>
-        {% endif %}
-    </article>
-    {% else %}
+    {% set previews = channels | rejectattr('name', 'equalto', 'Veröffentlichungen') | list %}
+    {% if previews %}
+    <section class="history-section history-previews" aria-labelledby="previews-heading">
+        <h2 id="previews-heading">Vorabveröffentlichungen</h2>
+        <p class="muted">Release Candidates und Ballots nach Sequence.</p>
+        <div class="history-table-wrapper" role="region" aria-label="Vorabveröffentlichungen" tabindex="0">
+            <table class="publication-table">
+                {{ table_head('Vorabveröffentlichungen') }}
+                {% for channel in previews %}{{ sequence_rows(channel) }}{% endfor %}
+            </table>
+        </div>
+    </section>
+    {% endif %}
+    {% if not current_entries and not channels %}
     <p class="card muted">Noch keine Version veröffentlicht.</p>
-    {% endfor %}
-
+    {% endif %}
+    {% include 'footer.html' %}
 </main>
 </body>
 </html>

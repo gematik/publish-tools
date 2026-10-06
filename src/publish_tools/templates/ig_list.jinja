@@ -7,24 +7,34 @@
     {% include 'style.html' %}
 </head>
 <body>
-<main class="container">
+<main class="container ig-list-page">
     {% include 'brand.html' %}
     <header class="page-header">
         <p class="eyebrow">Implementation Guides</p>
-        <h1>Paketübersicht</h1>
-        <p class="muted">Alle Pakete nach Package-ID. Die aktuelle Veröffentlichung steht im Vordergrund; Ballots und Release Candidates sind gesondert markiert.</p>
+        <h1>FHIR Paketübersicht</h1>
+        <p class="muted">Diese Seite bietet eine Übersicht über die von der gematik veröffentlichten FHIR-Packages. Neben den aktuellen Releases werden auch Vorabversionen wie Ballots und Release Candidates dargestellt.</p>
     </header>
-    {% macro edition_row(edition, label='') %}
-        <div class="card-heading"><span>{{ (label or 'Veröffentlichung') | safe_escape }}</span>
-            <a class="badge" href="{{ edition.url | safe_escape }}">{{ edition.ig_version | safe_escape }}</a></div>
-        <p>{{ edition.description | safe_escape }}</p>
-        <p class="metadata">{% if edition.date %}Veröffentlicht: <time datetime="{{ edition.date }}">{{ edition.date.strftime('%d.%m.%Y') }}</time>{% endif %} · FHIR {{ edition.fhir_version | join(', ') | safe_escape }}</p>
+    {% macro edition_row(release, label='') %}
+        <div class="release-heading">
+            {% if release.igs | length == 1 %}<a class="badge" href="{{ release.igs[0].url | safe_escape }}">{{ release.version | safe_escape }}</a>{% else %}<span class="badge">{{ release.version | safe_escape }}</span>{% endif %}
+            <span class="status-label">{{ (label or 'Veröffentlichung') | safe_escape }}</span>
+        </div>
+        {% for edition in release.igs %}
+        <div class="edition-row single-ig">
+            <div><p>{% if release.igs | length > 1 %}<a class="ig-name" href="{{ edition.url | safe_escape }}">{{ edition.description | safe_escape }}</a>{% else %}{{ edition.description | safe_escape }}{% endif %}</p>
+                <p class="metadata"><span class="sequence-label">Sequence: {{ edition.name | safe_escape }}</span> · FHIR {{ edition.fhir_version | join(', ') | safe_escape }}</p>
+            </div>
+        </div>
+        {% endfor %}
     {% endmacro %}
+    {% for family, packages in groups.items() | sort %}
+    <section class="package-family" aria-labelledby="family-{{ loop.index }}">
+        <div class="family-heading"><h2 id="family-{{ loop.index }}">{{ family | safe_escape }}</h2><span class="count">{{ packages | length }} Pakete</span></div>
     <div class="package-list">
     {% for package in packages %}
     <article class="card">
-        <h2 class="package-title">{{ package.name | safe_escape }}</h2>
-        <p class="package-id">{{ package.package_id | safe_escape }}</p>
+        <div class="package-heading"><h3 class="package-title">{{ package.name | safe_escape }}</h3>
+        <p class="package-id">{{ package.package_id | safe_escape }}</p></div>
         {% if package.latest %}
         <section class="release-channel stable">
             {{ edition_row(package.latest, 'Aktuelle Veröffentlichung') }}
@@ -39,7 +49,7 @@
         {% endif %}
         {% for preview in package.previews %}
         <section class="release-channel preview">
-            <h3>{{ preview.name | safe_escape }}</h3>
+            <h4>{{ preview.name | safe_escape }}</h4>
             <ul class="version-list">{% for edition in preview.visible %}<li>{{ edition_row(edition, preview.name) }}</li>{% endfor %}</ul>
             {% if preview.older %}
             <details><summary>Ältere {{ preview.name | safe_escape }}-Versionen <span class="count">{{ preview.older | length }}</span></summary>
@@ -49,10 +59,13 @@
         </section>
         {% endfor %}
     </article>
+    {% endfor %}
+    </div>
+    </section>
     {% else %}
     <p class="card muted">Noch keine Pakete veröffentlicht.</p>
     {% endfor %}
-    </div>
+    {% include 'footer.html' %}
 </main>
 </body>
 </html>

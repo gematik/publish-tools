@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Type, TypeVar
 
@@ -21,7 +23,8 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     env.filters["safe_escape"] = safe_escape
 
     template = env.get_template(template_name)
-    content = template.render(**data)
+    context = {**data, "updated_at": datetime.now(ZoneInfo("Europe/Berlin"))}
+    content = template.render(**context)
 
     (file := dir / file_name).write_text(content, encoding="utf-8")
 
@@ -29,13 +32,18 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
 
 
 def release_channel(version: str, sequence: str = "", status: str = "") -> str:
-    """Identify preview releases from both versions and publication metadata."""
-    text = f"{version} {sequence} {status}"
-    if re.search(r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)", text, re.I):
+    """Prefer explicit version markers over sequence and status metadata."""
+    rc_pattern = r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)"
+    ballot_pattern = r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)"
+    if re.search(rc_pattern, version.split("+", 1)[0], re.I):
+        return "Release Candidate"
+    if (re.search(ballot_pattern, version.split("+", 1)[0], re.I)
+            or re.search(r"[-.]b\d+(?:[.\-]|$)", version.split("+", 1)[0], re.I)):
         return "Ballot"
-    if re.search(r"[-.]b\d+(?:[.\-]|$)", version, re.I):
+    metadata = f"{sequence} {status}"
+    if re.search(ballot_pattern, metadata, re.I):
         return "Ballot"
-    if re.search(r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)", text, re.I):
+    if re.search(rc_pattern, metadata, re.I):
         return "Release Candidate"
     return "Veröffentlichungen"
 

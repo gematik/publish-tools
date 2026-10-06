@@ -1,0 +1,4 @@
+<footer class="page-footer">
+    <span>© {{ updated_at.year }} gematik</span>
+    <span>Zuletzt aktualisiert: <time datetime="{{ updated_at.isoformat() }}">{{ updated_at.strftime('%d.%m.%Y, %H:%M') }} Uhr ({{ updated_at.tzname() }})</time></span>
+</footer>

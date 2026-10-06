@@ -15,20 +15,30 @@ def render(ig_dir: Path, plist: PackageList):
         "introduction": plist.introduction,
     }
 
+    builds = [entry for entry in plist.list if not hasattr(entry, "sequence")]
+    releases = sorted(
+        [entry for entry in plist.list if hasattr(entry, "sequence")],
+        key=lambda entry: (entry.date, version_key(entry.version)), reverse=True,
+    )
+    stable = [entry for entry in releases if release_channel(entry.version, entry.sequence, entry.status.value) == "Veröffentlichungen"]
+    current = stable[:1]
+    data["current_entries"] = current + builds
     data["channels"] = []
-    data["ci_builds"] = [entry for entry in plist.list if not hasattr(entry, "sequence")]
-    releases = [entry for entry in plist.list if hasattr(entry, "sequence")]
-    for name in ("Veröffentlichungen", "Ballot", "Release Candidate"):
-        entries = sorted(
-            [entry for entry in releases
-             if release_channel(entry.version, entry.sequence, entry.status.value) == name],
-            key=lambda entry: (entry.current, version_key(entry.version), entry.date),
-            reverse=True,
-        )
-        if entries:
-            data["channels"].append({
-                "name": name, "latest": entries[0], "older": entries[1:],
-            })
+    for name in ("Veröffentlichungen", "Release Candidate", "Ballot"):
+        entries = [entry for entry in releases if
+                   release_channel(entry.version, entry.sequence, entry.status.value) == name]
+        if not entries:
+            continue
+        sequences = {}
+        for entry in entries:
+            sequences.setdefault(entry.sequence, []).append(entry)
+        data["channels"].append({
+            "name": name,
+            "current": [entry for entry in current if entry in entries],
+            "sequences": sequences,
+            "current_sequences": {entry.sequence for entry in current if entry in entries},
+        })
+    data["release_channel"] = release_channel
 
     render_helper(ig_dir, RENDER_FILE_NAME, data, "history.jinja")
     log.succ("rendered ig history")

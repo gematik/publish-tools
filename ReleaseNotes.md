@@ -2,6 +2,9 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.4.0
+
+
 ## Release 0.3.7
 
 * Fix information handling for first IG publications
