@@ -40,7 +40,9 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     return file
 
 
-def release_channel(version: str, sequence: str = "", status: str = "") -> ReleaseChannel:
+def release_channel(
+    version: str, sequence: str = "", status: str = ""
+) -> ReleaseChannel:
     """
     Classify a release as stable, Release Candidate, or Ballot.
 

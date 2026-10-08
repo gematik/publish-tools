@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import tempfile
+from tempfile import TemporaryDirectory
 import unittest
 
 from deepdiff import DeepDiff
@@ -312,3 +313,239 @@ class TestUpdate(unittest.TestCase):
         }
 
         self.process(setup_data=setup_data, input_data=input_data, wanted=wanted)
+
+
+def test_list_groups_versions_by_package(version_links):
+    guides = []
+    for package in ["one", "two"]:
+        guides.append(
+            dict(
+                name="Same title",
+                npm_name=package,
+                category="test",
+                canonical="https://example.org/",
+                ci_build="https://example.org/ci",
+                description="Guide",
+                editions=[
+                    dict(
+                        name="Release",
+                        ig_version=version,
+                        package=f"{package}#{version}",
+                        fhir_version=["4.0.1"],
+                        url=f"https://example.org/{package}/{version}",
+                        description="<script>unsafe</script>",
+                    )
+                    for version in ["1.9.0", "1.10.0"]
+                ],
+            )
+        )
+    with TemporaryDirectory() as directory:
+        ig_list.render(Path(directory), IgList(guides=guides))
+        html = (Path(directory) / "index.html").read_text()
+    links = version_links(html).links
+    for package in ["one", "two"]:
+        assert links[f"https://example.org/{package}/1.10.0"] is False
+        assert links[f"https://example.org/{package}/1.9.0"] is True
+    assert "<script>unsafe</script>" not in html
+    assert 'href="https://example.org/one/1.10.0">1.10.0</a>' in html
+    assert '<a class="ig-name"' not in html
+
+
+def test_package_groups_combine_sequences_and_keep_previews_separate(version_links):
+    editions = []
+    for sequence, versions in [
+        (
+            "Sequence A",
+            [
+                "1.9.0",
+                "1.10.0",
+                "2.0.0-ballot.1",
+                "2.0.0-ballot.2",
+                "2.0.0-rc.1",
+                "2.0.0-rc.2",
+            ],
+        ),
+        ("Sequence B", ["3.0.0"]),
+    ]:
+        for version in versions:
+            editions.append(
+                dict(
+                    name=sequence,
+                    ig_version=version,
+                    package=f"example#{version}",
+                    fhir_version=["4.0.1"],
+                    url=f"https://example.org/{version}",
+                    description=sequence,
+                )
+            )
+    guide = dict(
+        name="Example",
+        npm_name="example",
+        category="test",
+        canonical="https://example.org/",
+        ci_build="https://example.org/ci",
+        description="Guide",
+        editions=editions,
+    )
+    with TemporaryDirectory() as directory:
+        ig_list.render(Path(directory), IgList(guides=[guide]))
+        html = (Path(directory) / "index.html").read_text()
+    links = version_links(html).links
+    for version in ["2.0.0-ballot.2", "2.0.0-rc.2", "3.0.0"]:
+        assert links[f"https://example.org/{version}"] is False
+    for version in ["1.9.0", "1.10.0", "2.0.0-ballot.1", "2.0.0-rc.1"]:
+        assert links[f"https://example.org/{version}"] is True
+    assert "Sequence A" in html and "Sequence B" in html
+    assert "Ballot" in html and "Release Candidate" in html
+
+
+def test_legacy_dates_are_ignored_and_older_ballots_collapse(version_links):
+    versions = [
+        ("2.0.0", "2026-06-01", "release"),
+        ("3.0.0-ballot.1", "2026-05-01", "ballot"),
+        ("3.0.0-ballot.2", "2026-07-01", "ballot"),
+        ("3.0.0-ballot.3", "2026-08-01", "ballot"),
+    ]
+    guide = dict(
+        name="Example",
+        npm_name="example",
+        category="test",
+        canonical="https://example.org/",
+        ci_build="https://example.org/ci",
+        description="Guide",
+        editions=[
+            dict(
+                name="Sequence",
+                ig_version=v,
+                package=f"example#{v}",
+                fhir_version=["4.0.1"],
+                date=d,
+                status=status,
+                url=f"https://example.org/{v}",
+                description="Release",
+            )
+            for v, d, status in versions
+        ],
+    )
+    with TemporaryDirectory() as directory:
+        ig_list.render(Path(directory), IgList(guides=[guide]))
+        html = (Path(directory) / "index.html").read_text()
+    links = version_links(html).links
+    assert links["https://example.org/2.0.0"] is False
+    assert links["https://example.org/3.0.0-ballot.1"] is True
+    assert links["https://example.org/3.0.0-ballot.2"] is True
+    assert links["https://example.org/3.0.0-ballot.3"] is False
+    assert html.count('class="package-id"') == 1
+    assert 'alt="gematik"' in html
+    assert "Veröffentlicht:" not in html
+    assert "2026-06-01" not in html
+    edition = IgList(guides=[guide]).guides[0].editions[0]
+    assert "date" not in edition.model_dump()
+    assert "status" not in edition.model_dump()
+    assert "Sequence: Sequence" in html
+
+
+def test_package_families_keep_each_package_visible():
+    ids = [
+        "de.gematik.epa",
+        "de.gematik.epa.medication",
+        "de.gematik.epa.medication.examples",
+        "de.gematik.tiflow.core",
+        "de.gematik.tiflow.test",
+        "de.gematik.epaother",
+    ]
+    families = ig_list.package_families(ids)
+    assert all(families[package] == "de.gematik.epa" for package in ids[:3])
+    assert all(families[package] == "de.gematik.tiflow" for package in ids[3:5])
+    assert families[ids[-1]] == ids[-1]
+
+
+def test_package_families_support_long_ids_and_single_packages():
+    ids = [
+        "de.gematik.ig.sandbox",
+        "de.gematik.other.deep.core",
+        "de.gematik.other.deep.examples",
+        "org.example.parent",
+        "org.example.parent.child",
+    ]
+    families = ig_list.package_families(ids)
+    assert families[ids[0]] == ids[0]
+    assert families[ids[1]] == "de.gematik.other.deep"
+    assert families[ids[2]] == "de.gematik.other.deep"
+    assert families[ids[4]] == ids[3]
+    assert ig_list.package_families([]) == {}
+
+
+def test_multiple_igs_per_package_version_are_preserved(version_links):
+    from unittest.mock import patch
+    from publish_tools.models.guide import Guide
+    from publish_tools.models.ig_info import IgInfo
+
+    editions = [
+        dict(
+            name=f"ISiK {module} {version}",
+            ig_version=version,
+            package=f"de.gematik.isik#{version}",
+            fhir_version=["4.0.1"],
+            url=f"https://example.org/{module}/{version}",
+            description=f"{module} guide",
+        )
+        for version in ["5.0.0", "6.0.0", "7.0.0-rc.1", "7.0.0-rc.2"]
+        for module in ["Basis", "Labor"]
+    ]
+    guide = Guide(
+        name="ISiK",
+        npm_name="de.gematik.isik",
+        category="test",
+        canonical="https://example.org/",
+        ci_build="https://example.org/ci",
+        description="Guide",
+        editions=editions,
+    )
+    registry = IgList(guides=[guide])
+    with TemporaryDirectory() as directory:
+        path = Path(directory)
+        ig_list.render(path, registry)
+        html = (path / "index.html").read_text()
+        links = version_links(html).links
+        for module in ["Basis", "Labor"]:
+            assert links[f"https://example.org/{module}/6.0.0"] is False
+            assert links[f"https://example.org/{module}/5.0.0"] is True
+            assert links[f"https://example.org/{module}/7.0.0-rc.2"] is False
+            assert links[f"https://example.org/{module}/7.0.0-rc.1"] is True
+        assert html.count(">6.0.0</span>") == 1
+        assert (
+            '<a class="ig-name" href="https://example.org/Basis/6.0.0">Basis guide</a>'
+            in html
+        )
+        assert (
+            '<a class="ig-name" href="https://example.org/Labor/6.0.0">Labor guide</a>'
+            in html
+        )
+        assert "IG 1 öffnen" not in html
+        assert html.count("ISiK Basis 6.0.0") == 1
+        info = IgInfo(
+            title="ISiK",
+            package_id="de.gematik.isik",
+            canonical="https://example.org/",
+            sequence="ISiK Labor 6.0.0",
+            version="6.0.0",
+            fhir_version=["4.0.1"],
+            path="https://example.org/Labor/6.0.0",
+            desc="Updated labor",
+            date="2026-01-01",
+            release_label="release",
+            publisher="Test",
+        )
+        with patch.object(ig_list, "read", return_value=registry):
+            result = ig_list.update(path, info)
+        assert len(result.guides[0].editions) == 8
+        assert result.guides[0].editions[2].description == "Basis guide"
+        assert result.guides[0].editions[3].description == "Updated labor"
+
+
+def test_empty_list_render():
+    with TemporaryDirectory() as directory:
+        path = Path(directory)
+        ig_list.render(path, IgList())
+        assert "Noch keine Pakete" in (path / "index.html").read_text()
