@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from .. import log
+from ..models.release_channel import ReleaseChannel
 from ..models.package_list import PackageList
 from .helper import render as render_helper
 from .helper import release_channel, version_key
@@ -25,12 +26,16 @@ def render(ig_dir: Path, plist: PackageList):
         entry
         for entry in releases
         if release_channel(entry.version, entry.sequence, entry.status.value)
-        == "Veröffentlichungen"
+        == ReleaseChannel.STABLE
     ]
     current = stable[:1]
     data["current_entries"] = current + builds
     data["channels"] = []
-    for name in ("Veröffentlichungen", "Release Candidate", "Ballot"):
+    for name in (
+        ReleaseChannel.STABLE,
+        ReleaseChannel.RELEASE_CANDIDATE,
+        ReleaseChannel.BALLOT,
+    ):
         entries = [
             entry
             for entry in releases
@@ -53,6 +58,7 @@ def render(ig_dir: Path, plist: PackageList):
             }
         )
     data["release_channel"] = release_channel
+    data["ReleaseChannel"] = ReleaseChannel
 
     render_helper(ig_dir, RENDER_FILE_NAME, data, "history.jinja")
     log.succ("rendered ig history")

@@ -21,7 +21,7 @@
             <a class="badge" href="{{ entry.path | safe_escape }}">{{ entry.version | safe_escape }}</a>
             {% if entry.sequence is defined %}
                 {% set channel = release_channel(entry.version, entry.sequence, entry.status.value) %}
-                {% if channel != 'Veröffentlichungen' %}<span class="publication-status">{{ channel | safe_escape }}</span>{% endif %}
+                {% if channel != ReleaseChannel.STABLE %}<span class="publication-status">{{ channel | safe_escape }}</span>{% endif %}
             {% else %}<span class="status-label">CI Build</span>{% endif %}
         </td>
         <td>{{ entry.fhir_version | safe_escape if entry.fhir_version is defined else '–' }}</td>
@@ -38,7 +38,7 @@
     {% macro sequence_rows(channel) %}
         {% for sequence, entries in channel.sequences.items() %}
         <tbody>
-            <tr class="publication-group{{ ' preview-group' if channel.name != 'Veröffentlichungen' else '' }}"><th colspan="5" scope="rowgroup">{% if channel.name != 'Veröffentlichungen' %}{{ channel.name | safe_escape }} · {% endif %}{{ sequence | safe_escape }} <!--span class="group-status">({{ 'Aktuell' if sequence in channel.current_sequences else 'Historisch' }})</span--></th></tr>
+            <tr class="publication-group{{ ' preview-group' if channel.name != ReleaseChannel.STABLE else '' }}"><th colspan="5" scope="rowgroup">{% if channel.name != ReleaseChannel.STABLE %}{{ channel.name | safe_escape }} · {% endif %}{{ sequence | safe_escape }} <!--span class="group-status">({{ 'Aktuell' if sequence in channel.current_sequences else 'Historisch' }})</span--></th></tr>
             {% for entry in entries %}{{ version_row(entry) }}{% endfor %}
         </tbody>
         {% endfor %}
@@ -55,7 +55,7 @@
         </div>
     </section>
     {% endif %}
-    {% for channel in channels if channel.name == 'Veröffentlichungen' %}
+    {% for channel in channels if channel.name == ReleaseChannel.STABLE %}
     <section class="history-section" aria-labelledby="releases-heading">
         <h2 id="releases-heading">Veröffentlichte IGs</h2>
         <p class="muted">Alle regulären Veröffentlichungen nach Sequence.</p>
@@ -67,7 +67,7 @@
         </div>
     </section>
     {% endfor %}
-    {% set previews = channels | rejectattr('name', 'equalto', 'Veröffentlichungen') | list %}
+    {% set previews = channels | rejectattr('name', 'equalto', ReleaseChannel.STABLE) | list %}
     {% if previews %}
     <section class="history-section history-previews" aria-labelledby="previews-heading">
         <h2 id="previews-heading">Vorabveröffentlichungen</h2>

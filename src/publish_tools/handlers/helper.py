@@ -10,6 +10,8 @@ from markupsafe import escape
 from pydantic import BaseModel
 from pydantic_xml import BaseXmlModel
 
+from ..models.release_channel import ReleaseChannel
+
 # Matches 'ballot' or 'Vorabveröffentlichung'
 # (with leading separators/spaces) anywhere
 REMOVE_TOKEN_REGEX = re.compile(
@@ -38,7 +40,7 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     return file
 
 
-def release_channel(version: str, sequence: str = "", status: str = "") -> str:
+def release_channel(version: str, sequence: str = "", status: str = "") -> ReleaseChannel:
     """
     Classify a release as stable, Release Candidate, or Ballot.
 
@@ -48,17 +50,17 @@ def release_channel(version: str, sequence: str = "", status: str = "") -> str:
     """
     version_without_metadata = version.split("+", 1)[0]
     if RC_REGEX.search(version_without_metadata):
-        return "Release Candidate"
+        return ReleaseChannel.RELEASE_CANDIDATE
     if BALLOT_REGEX.search(version_without_metadata) or BALLOT_VERSION_REGEX.search(
         version_without_metadata
     ):
-        return "Ballot"
+        return ReleaseChannel.BALLOT
     metadata = f"{sequence} {status}"
     if BALLOT_REGEX.search(metadata):
-        return "Ballot"
+        return ReleaseChannel.BALLOT
     if RC_REGEX.search(metadata):
-        return "Release Candidate"
-    return "Veröffentlichungen"
+        return ReleaseChannel.RELEASE_CANDIDATE
+    return ReleaseChannel.STABLE
 
 
 def version_key(version: str):

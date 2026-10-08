@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from .. import log
+from ..models.release_channel import ReleaseChannel
 from ..models.guide import Guide
 from ..models.ig_info import IgInfo, IgInfoFirst
 from ..models.ig_list import IgList
@@ -133,7 +134,7 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
                 )
 
         stable = sorted(
-            channels.get("Veröffentlichungen", {}).values(),
+            channels.get(ReleaseChannel.STABLE, {}).values(),
             key=lambda release: version_key(release["version"]),
             reverse=True,
         )
@@ -141,7 +142,7 @@ def render(registry_dir: Path, ig_list: IgList | None = None):
         package["latest"] = latest
         package["older"] = stable[1:]
         package["previews"] = []
-        for name in ("Ballot", "Release Candidate"):
+        for name in (ReleaseChannel.BALLOT, ReleaseChannel.RELEASE_CANDIDATE):
             previews = sorted(
                 channels.get(name, {}).values(),
                 key=lambda release: version_key(release["version"]),

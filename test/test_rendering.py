@@ -179,18 +179,22 @@ def test_package_groups_combine_sequences_and_keep_previews_separate():
 
 def test_preview_detection_from_sequence_and_version():
     from publish_tools.handlers.helper import release_channel
+    from publish_tools.models.release_channel import ReleaseChannel
 
-    assert release_channel("1.0.0", "Example Ballot") == "Ballot"
-    assert release_channel("1.0.0", "Example RC 2") == "Release Candidate"
-    assert release_channel("1.0.0-b1") == "Ballot"
-    assert release_channel("1.0.0-RC1") == "Release Candidate"
-    assert release_channel("1.0.0", "Beschreibung") == "Veröffentlichungen"
+    assert release_channel("1.0.0", "Example Ballot") is ReleaseChannel.BALLOT
+    assert release_channel("1.0.0", "Example RC 2") is ReleaseChannel.RELEASE_CANDIDATE
+    assert release_channel("1.0.0-b1") is ReleaseChannel.BALLOT
+    assert release_channel("1.0.0-RC1") is ReleaseChannel.RELEASE_CANDIDATE
+    assert release_channel("1.0.0", "Beschreibung") is ReleaseChannel.STABLE
     assert (
         release_channel("1.4.0-rc.1", "TI Common Ballot", "ballot")
-        == "Release Candidate"
+        is ReleaseChannel.RELEASE_CANDIDATE
     )
-    assert release_channel("1.4.0-ballot.1", "TI Common RC", "release") == "Ballot"
-    assert release_channel("1.4.0-b1", "TI Common RC") == "Ballot"
+    assert (
+        release_channel("1.4.0-ballot.1", "TI Common RC", "release")
+        is ReleaseChannel.BALLOT
+    )
+    assert release_channel("1.4.0-b1", "TI Common RC") is ReleaseChannel.BALLOT
 
 
 def test_legacy_dates_are_ignored_and_older_ballots_collapse():
