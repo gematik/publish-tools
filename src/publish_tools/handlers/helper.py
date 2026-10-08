@@ -46,10 +46,11 @@ def release_channel(version: str, sequence: str = "", status: str = "") -> str:
     Build metadata after "+" is ignored. Without a recognized RC or Ballot
     marker, the release is classified as "Veröffentlichungen".
     """
-    if RC_REGEX.search(version.split("+", 1)[0]):
+    version_without_metadata = version.split("+", 1)[0]
+    if RC_REGEX.search(version_without_metadata):
         return "Release Candidate"
-    if BALLOT_REGEX.search(version.split("+", 1)[0]) or BALLOT_VERSION_REGEX.search(
-        version.split("+", 1)[0]
+    if BALLOT_REGEX.search(version_without_metadata) or BALLOT_VERSION_REGEX.search(
+        version_without_metadata
     ):
         return "Ballot"
     metadata = f"{sequence} {status}"
