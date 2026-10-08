@@ -15,6 +15,13 @@ from pydantic_xml import BaseXmlModel
 REMOVE_TOKEN_REGEX = re.compile(
     r"([\s\-_()/]*)\b(?:ballot|vorabveröffentlichung)\b", re.IGNORECASE
 )
+RC_REGEX = re.compile(
+    r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)", re.IGNORECASE
+)
+BALLOT_REGEX = re.compile(
+    r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)", re.IGNORECASE
+)
+BALLOT_VERSION_REGEX = re.compile(r"[-.]b\d+(?:[.\-]|$)", re.IGNORECASE)
 
 
 def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
@@ -39,18 +46,16 @@ def release_channel(version: str, sequence: str = "", status: str = "") -> str:
     Build metadata after "+" is ignored. Without a recognized RC or Ballot
     marker, the release is classified as "Veröffentlichungen".
     """
-    rc_pattern = r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)"
-    ballot_pattern = r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)"
-    if re.search(rc_pattern, version.split("+", 1)[0], re.I):
+    if RC_REGEX.search(version.split("+", 1)[0]):
         return "Release Candidate"
-    if re.search(ballot_pattern, version.split("+", 1)[0], re.I) or re.search(
-        r"[-.]b\d+(?:[.\-]|$)", version.split("+", 1)[0], re.I
+    if BALLOT_REGEX.search(version.split("+", 1)[0]) or BALLOT_VERSION_REGEX.search(
+        version.split("+", 1)[0]
     ):
         return "Ballot"
     metadata = f"{sequence} {status}"
-    if re.search(ballot_pattern, metadata, re.I):
+    if BALLOT_REGEX.search(metadata):
         return "Ballot"
-    if re.search(rc_pattern, metadata, re.I):
+    if RC_REGEX.search(metadata):
         return "Release Candidate"
     return "Veröffentlichungen"
 
