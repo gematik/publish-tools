@@ -184,6 +184,12 @@ def from_history(guide: Guide) -> PackageList:
             )
         )
 
+    list_.append(
+        PackageListCiBuildEntry(
+            path=guide.ci_build,
+            desc=CI_VERSION_DESCRIPTION,
+        )
+    )
     feed.list = list_
 
     return feed

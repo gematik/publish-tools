@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Type, TypeVar
 
@@ -8,11 +10,20 @@ from markupsafe import escape
 from pydantic import BaseModel
 from pydantic_xml import BaseXmlModel
 
+from ..models.release_channel import ReleaseChannel
+
 # Matches 'ballot' or 'Vorabveröffentlichung'
 # (with leading separators/spaces) anywhere
 REMOVE_TOKEN_REGEX = re.compile(
     r"([\s\-_()/]*)\b(?:ballot|vorabveröffentlichung)\b", re.IGNORECASE
 )
+RC_REGEX = re.compile(
+    r"(?:^|[^a-z])(?:rc|release[ -]candidate)(?:[\d\W]|$)", re.IGNORECASE
+)
+BALLOT_REGEX = re.compile(
+    r"(?:^|[^a-z])(?:ballot|vorabveröffentlichung)(?:[\d\W]|$)", re.IGNORECASE
+)
+BALLOT_VERSION_REGEX = re.compile(r"[-.]b\d+(?:[.\-]|$)", re.IGNORECASE)
 
 
 def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
@@ -21,11 +32,59 @@ def render(dir: Path, file_name: str, data: dict, template_name: str) -> Path:
     env.filters["safe_escape"] = safe_escape
 
     template = env.get_template(template_name)
-    content = template.render(**data)
+    context = {**data, "updated_at": datetime.now(ZoneInfo("Europe/Berlin"))}
+    content = template.render(**context)
 
     (file := dir / file_name).write_text(content, encoding="utf-8")
 
     return file
+
+
+def release_channel(
+    version: str, sequence: str = "", status: str = ""
+) -> ReleaseChannel:
+    """
+    Classify a release as stable, Release Candidate, or Ballot.
+
+    Explicit version markers take precedence over sequence and status metadata.
+    Build metadata after "+" is ignored. Without a recognized RC or Ballot
+    marker, the release is classified as "Veröffentlichungen".
+    """
+    version_without_metadata = version.split("+", 1)[0]
+    if RC_REGEX.search(version_without_metadata):
+        return ReleaseChannel.RELEASE_CANDIDATE
+    if BALLOT_REGEX.search(version_without_metadata) or BALLOT_VERSION_REGEX.search(
+        version_without_metadata
+    ):
+        return ReleaseChannel.BALLOT
+    metadata = f"{sequence} {status}"
+    if BALLOT_REGEX.search(metadata):
+        return ReleaseChannel.BALLOT
+    if RC_REGEX.search(metadata):
+        return ReleaseChannel.RELEASE_CANDIDATE
+    return ReleaseChannel.STABLE
+
+
+def version_key(version: str):
+    """
+    Build a sorting key using numeric version components.
+
+    Ignore leading "v" characters and build metadata after "+". For the same
+    core version, prereleases sort before releases; numeric prerelease
+    identifiers sort numerically and before text identifiers.
+    """
+    core, separator, prerelease = version.lstrip("v").split("+", 1)[0].partition("-")
+    parts = tuple(int(part) for part in core.split(".") if part.isdigit())
+    parts = parts + (0,) * max(0, 3 - len(parts))
+    identifiers = (
+        tuple(
+            (0, int(part)) if part.isdigit() else (1, part.lower())
+            for part in prerelease.split(".")
+        )
+        if separator
+        else ()
+    )
+    return parts, not separator, identifiers
 
 
 def sort_sequences(items: list[tuple[str, dict]], reverse=False):

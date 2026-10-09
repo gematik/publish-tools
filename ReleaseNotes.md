@@ -2,6 +2,18 @@
 
 # Release Notes FHIR Publish Tools
 
+## Release 0.4.0
+
+* Redesign the IG overview and publication history with responsive layouts and gematik branding
+* Group packages by shared namespace and display all IGs belonging to the same package version
+* Show the latest package version in the IG overview, with older versions expandable
+* List current releases and CI builds, published IGs by sequence and prereleases in separate history tables
+* Distinguish Release Candidates and Ballots, prioritizing explicit version markers over publication metadata
+* Exclude Release Candidates and Ballots from the current release selection in the publication history
+* Preserve multiple IGs per package version when updating the registry
+* Sort version numbers numerically, including prerelease identifiers
+* Add a footer with copyright and the page generation timestamp in the Europe/Berlin time zone
+
 ## Release 0.3.7
 
 * Fix information handling for first IG publications
